@@ -1,0 +1,9 @@
+<a href='/'>Home</a> -> {{db.name}}
+<br><br>
+Collections:
+<ul>
+{% for col in db.collection_names() %}
+	<li><a href="/db/{{db.name}}/col/{{col}}">{{col}}</a></li>
+{% endfor %}
+
+</ul>

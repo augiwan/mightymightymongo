@@ -1,0 +1,9 @@
+Welcome to the mighty mighty mongo!!!
+<br>
+
+Databases:
+<ul>
+	{% for db in mongo.database_names() %}
+	<li><a href="/db/{{db}}">{{db}}</a></li>
+	{% endfor %}
+</ul>
