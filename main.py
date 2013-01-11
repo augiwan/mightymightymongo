@@ -27,24 +27,30 @@ def makeKeysStats(col):
 	for doc in col.find():
 		keys = getKeys(doc)
 		addToKeyCount(stats, keys)
-	return stats
 	
+	ret = {}
+	
+	return stats
+
+def clarifyStats(stats, 
 def addToKeyCount(stats, keys):
 	for key in keys:
 		if key in stats:
 			stats[key]['count'] += 1
+			stats[key]['types'][keys[key][0]] = True
 		else:
-			stats[key] = {'count':1, 'subKeys':{}}
-		addToKeyCount(stats[key], keys[key])
+			stats[key] = {'count':1, 'types':{keys[key][0]:True}, 'subKeys':{}}
+		if keys[key][0] == type({}): #recurse if it's a subdictionary
+			addToKeyCount(stats[key]['subKeys'], keys[key][1])
 		
 def getKeys(dic):
 	"returns a dictionary of all keys and sub-keys in the dictionary"
 	newDic = {}
 	for key in dic.keys():
 		if type(dic[key]) == type({}):
-			newDic[key] = getKeys(dic[key])
+			newDic[key] = (type({}), getKeys(dic[key]))
 		else:
-			newDic[key] = {}
+			newDic[key] = (type(dic[key]), dic[key])
 	return newDic
 
 
