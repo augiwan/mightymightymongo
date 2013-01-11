@@ -3,10 +3,8 @@ Collection: {{col.name}}
 <br><br>
 This collection has {{col.count()}} entries.
 
-This colleciton has the following schemas:
+This collection has the following schemas:
 <ul>
-{% for schema in schemasList %}
-	<li>{{schema}}</li>
-{% endfor %}
+{{keyStats}}
 
 </ul>
