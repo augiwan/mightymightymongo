@@ -34,9 +34,7 @@ def makeKeysStats(col):
 	for doc in col.find():
 		keys = getKeys(doc)
 		addToKeyCount(stats, keys)
-	
 	ret = {}
-	
 	return stats
 
 #def sanitizeKeyStats(stats):
@@ -51,7 +49,7 @@ def addToKeyCount(stats, keys):
 			#stats[key]['types'][keys[key][0]] = True
 		else:
 			stats[key] = {'count':1, 'types':[keys[key][0]], 'subKeys':{}}
-		if keys[key][0] == type({}): #recurse if it's a subdictionary
+		if keys[key][0] == type({}).__name__: #recurse if it's a subdictionary
 			addToKeyCount(stats[key]['subKeys'], keys[key][1])
 		
 def getKeys(dic):

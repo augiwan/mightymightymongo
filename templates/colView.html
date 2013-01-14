@@ -6,14 +6,23 @@ function getKeyStats(){
 	data = {};
 	data["dbName"] = "{{db.name}}"
 	data["colName"] = "{{col.name}}"
-	$.getJSON("/ajax/getkeystats", data, function(data){keyStats = data['stats']})
+	$.getJSON("/ajax/getkeystats", data, function(data){keyStats = data['stats']; console.log("data received")})
 }
 
-function printKeyStats(){
+function printKeyStats(keyStats, div){
+	console.log("running")
 	for (var key in keyStats){
-		li = document.createElement("li");
-		$(li).append(key)
-		$("#keyStats").append($(li))
+		var li = document.createElement("li");
+		$(li).append(key);
+		subKeys = Object.keys(keyStats[key]['subKeys']);
+		if(subKeys.length > 0){ //if there are subkeys to print
+			console.log("subkeys found for " + key);
+			var subKeysDiv = document.createElement("li");
+			console.log("passing " + keyStats[key]['subKeys'])
+			printKeyStats(keyStats[key]['subKeys'], subKeysDiv);
+			$(li).append(subKeysDiv)
+		}
+		$(div).append($(li))
 	}
 }
 </script>
@@ -27,8 +36,8 @@ This collection has {{col.count()}} entries.
 
 This collection has the following schemas: <br>
 <button onclick="getKeyStats()">get Stats</button><br>
-<button onclick="printKeyStats()">print</button>
+<button onclick="printKeyStats(keyStats, '#keyStatsDiv')">print</button>
 
-<ul id="keyStats">
+<ul id="keyStatsDiv">
 
 </ul>
