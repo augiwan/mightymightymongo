@@ -3,6 +3,7 @@ from pymongo import Connection
 app = Flask(__name__)
 import unicodedata
 mongo = Connection()
+from bson.json_util import dumps
 
 @app.route('/')
 def home():
@@ -27,6 +28,17 @@ def getKeyStats():
 	collection = mongo[dbName][colName]
 	stats = makeKeysStats(collection)
 	return jsonify({"stats":stats})
+
+@app.route('/ajax/query')
+def query():
+	dbName = request.args.get('dbName')
+	colName = request.args.get('colName')
+	collection = mongo[dbName][colName]
+	criteria = request.args.get('criteria')
+	print "criteria", criteria
+	query = collection.find(criteria)
+	return jsonify({'results':dumps(query)})
+	
 
 def makeKeysStats(col):
 	"returns stats about each key"
@@ -61,7 +73,6 @@ def getKeys(dic):
 		else:
 			newDic[key] = (type(dic[key]).__name__, dic[key])
 	return newDic
-
 
 if __name__ == '__main__':
 	app.run(debug=True)

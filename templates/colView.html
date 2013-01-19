@@ -11,24 +11,37 @@ function getKeyStats(){
 
 function printKeyStats(keyStats, div){
 	console.log("running")
+	var statsList = makeKeysList(keyStats)
+	$("#keyStatsDiv").append(statsList)
+} //end printKeyStats
+
+function makeKeysList(keyStats){
+	var list = document.createElement('ul')
 	for (var key in keyStats){
-		var li = document.createElement("li");
-		$(li).append(key);
-		subKeys = Object.keys(keyStats[key]['subKeys']);
-		if(subKeys.length > 0){ //if there are subkeys to print
-			console.log("subkeys found for " + key);
-			var subKeysDiv = document.createElement("li");
-			console.log("passing " + keyStats[key]['subKeys'])
-			printKeyStats(keyStats[key]['subKeys'], subKeysDiv);
-			$(li).append(subKeysDiv)
-		}
-		$(div).append($(li))
+		var item = document.createElement('li')
+		$(item).append(key + "("+keyStats[key]['count']+")")
+		if(Object.keys(keyStats[key]['subKeys']).length > 0)
+			$(item).append(makeKeysList(keyStats[key]['subKeys']))
+		$(list).append(item)
 	}
+	return list
 }
+</script>
+
+<script type='text/javascript'>
+	function query(){
+		criteria = $("#queryBar").val()
+		dbName = "{{db.name}}"
+		colName = "{{col.name}}"
+		data = {'dbName':dbName, 'colName':colName, 'criteria':criteria}
+		$.getJSON("/ajax/query", data, function(data){
+			console.log(data)
+		}) // end getJSON
+	} // end query
 </script>
 </head>
 
-
+<body>
 <a href='/'>Home</a> -> <a href="/db/{{db.name}}">{{db.name}}</a>
 Collection: {{col.name}}
 <br><br>
@@ -38,6 +51,13 @@ This collection has the following schemas: <br>
 <button onclick="getKeyStats()">get Stats</button><br>
 <button onclick="printKeyStats(keyStats, '#keyStatsDiv')">print</button>
 
-<ul id="keyStatsDiv">
+<div id="keyStatsDiv">
 
-</ul>
+</div>
+
+<input type="text" id="queryBar" placeholder="enter query here"><button id="submitQuery" onclick="query()">Search</button>
+
+<div id="queryResults">
+
+</div>
+</body>
