@@ -43,7 +43,7 @@ def query():
 def makeKeysStats(col):
 	"returns stats about each key"
 	stats = {}
-	for doc in col.find():
+	for doc in col.find(limit=100):
 		keys = getKeys(doc)
 		addToKeyCount(stats, keys)
 	ret = {}

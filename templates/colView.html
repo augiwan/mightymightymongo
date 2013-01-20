@@ -10,20 +10,57 @@ function getKeyStats(){
 }
 
 function printKeyStats(keyStats, div){
-	console.log("running")
 	var statsList = makeKeysList(keyStats)
 	$("#keyStatsDiv").append(statsList)
 } //end printKeyStats
 
+function addToCriteria(e){
+	keyChain = getKeyChain.apply(this, [e])
+	addKeyChainToCriteria(keyChain)
+}
+function getKeyChain(e){
+	//returns a <key>.<key>... structure for a given node in the list
+	e.stopPropagation()
+	keyName = $(this).children(".keyName").html()
+	parentList = $($(this).parent()).parent();
+	if($(parentList).attr('class') == 'keyListLi'){
+		return keyName+"."+getKeyChain.apply(parentList, [e])
+	}
+	return keyName
+	console.log($(parentList).children('.keyName').html())
+}
+
+function addKeyChainToCriteria(keyChain){
+	newCriteria = document.createElement('div')
+	$(newCriteria).append("<span class='field'>"+keyChain+"</span>")
+	var logicType = document.createElement('select')
+	$(logicType).attr('class', 'logicType')
+		var types = ['equals', 'in', 'exists']
+		for(var type in types){
+			var option = document.createElement('option')
+			$(option).html(types[type])
+			$(logicType).append(option)
+		}
+	valueField = document.createElement('input')
+	$(valueField).attr('class', 'valueField')
+	$(newCriteria).append("<br>")
+	$(newCriteria).append(logicType)
+	$(newCriteria).append(valueField)
+	$("#queryFields").append(newCriteria)
+}
 function makeKeysList(keyStats){
 	var list = document.createElement('ul')
 	for (var key in keyStats){
-		var item = document.createElement('li')
-		$(item).click(function(){console.log(self)})
-		$(item).append(key + "("+keyStats[key]['count']+": " + keyStats[key]['types']+")")
+		var li = document.createElement('li')
+		$(li).attr('class', 'keyListLi')
+		$(li).append("<span class=keyName>"+key+"</span> ")
+		$(li).append("(<span class=keyCount>"+keyStats[key]['count']+"</span>: ")
+		$(li).append("<span class=keyTypes>"+keyStats[key]['types']+"</span>)")
+		//$(li).click(function(){console.log($(self).children(".keyName")[0])})
+		$(li).click(addToCriteria)
 		if(Object.keys(keyStats[key]['subKeys']).length > 0)
-			$(item).append(makeKeysList(keyStats[key]['subKeys']))
-		$(list).append(item)
+			$(li).append(makeKeysList(keyStats[key]['subKeys']))
+		$(list).append(li)
 	}
 	return list
 }
@@ -32,16 +69,22 @@ function makeKeysList(keyStats){
 <script type='text/javascript'>
 	$(document).ready(function(){
 		getKeyStats()
-		
 		}
 	)
 	function query(){
-		criteria = $("#queryBar").val()
-		dbName = "{{db.name}}"
-		colName = "{{col.name}}"
-		data = {'dbName':dbName, 'colName':colName, 'criteria':criteria}
+		var criteria = $("#queryBar").val()
+		var dbName = "{{db.name}}"
+		var colName = "{{col.name}}"
+		var data = []
+		for(field in $("#queryFields").children()){
+			var fieldName = $(field).children('.field').html()
+			var logicType = $(field).children('.logicType').val()
+			var value = $(field).children('.value').val()
+			console.log("pushing something")
+			data.push({'fieldName':fieldName, 'logicType':logicType, 'value':value})
+		}
+		console.log(data)
 		$.getJSON("/ajax/query", data, function(data){
-			console.log(data)
 		}) // end getJSON
 	} // end query
 </script>
@@ -49,6 +92,7 @@ function makeKeysList(keyStats){
 
 <body>
 <a href='/'>Home</a> -> <a href="/db/{{db.name}}">{{db.name}}</a>
+<h3 style="color:red">NOTE: Only analyzing 100 records to make schema, for efficiency</h3>
 Collection: {{col.name}}
 <br><br>
 This collection has {{col.count()}} entries.
@@ -56,42 +100,10 @@ This collection has {{col.count()}} entries.
 This collection has the following schemas: <br>
 
 <div id="keyStatsDiv">
-
 </div>
-
-<div id="queryFields">
-
-</div>
-<div><button onclick="makeQueryField()">Add Query Field </div>
-<script type='text/javascript'>
-	function makeQueryField(){
-		var span = document.createElement('span')
-		$(span).attr('class', 'queryFieldSpan')
-		var select = makeQueryFieldSelect()
-		var logicType = document.createElement('select')
-		var types = ['equals', 'in', 'exists']
-		for(var type in types){
-			var option = document.createElement('option')
-			$(option).html(types[type])
-			$(logicType).append(option)
-		}
-		$("#queryFields").append(select)
-		$("#queryFields").append(logicType)
-		$("#queryFields").append("<br>")
-	}
-	
-	function makeQueryFieldSelect(){
-		var select = document.createElement('select');
-		$(select).attr('class', 'queryFieldSelect')
-		for(var key in keyStats){
-			var option = document.createElement('option')
-			$(option).html(key)
-			$(select).append(option)
-		}
-		return select
-	}
-</script>
 <button id="submitQuery" onclick="query()">Search</button>
+<div id="queryFields">
+</div>
 
 <div id="queryResults">
 
