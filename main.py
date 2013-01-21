@@ -4,6 +4,7 @@ app = Flask(__name__)
 import unicodedata
 mongo = Connection()
 from bson.json_util import dumps
+from json import loads
 
 @app.route('/')
 def home():
@@ -31,11 +32,21 @@ def getKeyStats():
 
 @app.route('/ajax/query')
 def query():
-	dbName = request.args.get('dbName')
-	colName = request.args.get('colName')
+	data = loads(request.args.keys()[0])
+	dbName = data['dbName']
+	colName = data['colName']
+	criteriaList = data['criteria']
 	collection = mongo[dbName][colName]
-	criteria = request.args.get('criteria')
-	print "criteria", criteria
+	criteria = {}
+	for item in criteriaList:
+		if item['logicType'] == 'equals':
+			criteria[item['fieldName']] = item['value']
+		elif item['logicType'] == 'in':
+			criteria[item['fieldName']] = {'$in':item['value']}
+		elif item['logicType'] == 'exists':
+			criteria[item['fieldName']] = {'$exists':True}
+		else:
+			raise Exception("Bad logicType " + item['logicType'])
 	query = collection.find(criteria)
 	return jsonify({'results':dumps(query)})
 	

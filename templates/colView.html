@@ -3,7 +3,7 @@
 <script type='text/javascript'>
 keyStats = 5;
 function getKeyStats(){
-	data = {};
+	var data = {};
 	data["dbName"] = "{{db.name}}"
 	data["colName"] = "{{col.name}}"
 	$.getJSON("/ajax/getkeystats", data, function(data){keyStats = data['stats']; printKeyStats(keyStats)})
@@ -14,12 +14,17 @@ function printKeyStats(keyStats, div){
 	$("#keyStatsDiv").append(statsList)
 } //end printKeyStats
 
+//run when a list item is clicked.  Get's the <field>.<field>... string
+// and then adds this string along with value and [equals, exists, ...]
+// fields for searching to the appropriate div
 function addToCriteria(e){
 	keyChain = getKeyChain.apply(this, [e])
 	addKeyChainToCriteria(keyChain)
 }
+//returns a <key>.<key>... structure for the node represented
+// by "this" in the list
 function getKeyChain(e){
-	//returns a <key>.<key>... structure for a given node in the list
+	
 	e.stopPropagation()
 	keyName = $(this).children(".keyName").html()
 	parentList = $($(this).parent()).parent();
@@ -75,16 +80,20 @@ function makeKeysList(keyStats){
 		var criteria = $("#queryBar").val()
 		var dbName = "{{db.name}}"
 		var colName = "{{col.name}}"
-		var data = []
-		for(field in $("#queryFields").children()){
-			var fieldName = $(field).children('.field').html()
-			var logicType = $(field).children('.logicType').val()
-			var value = $(field).children('.value').val()
-			console.log("pushing something")
-			data.push({'fieldName':fieldName, 'logicType':logicType, 'value':value})
+		var criteria = {}
+		criteria['dbName']=dbName;criteria['colName']=colName;
+		criteria['criteria'] = []
+		var fields = $("#queryFields").children()
+		for(i=0;i<fields.length;i++){
+			var fieldName = $(fields[i]).children('.field').html()
+			var logicType = $(fields[i]).children('.logicType').val()
+			var value = $(fields[i]).children('.valueField').val()
+			//console.log("pushing something")
+			criteria['criteria'].push({'fieldName':fieldName, 'logicType':logicType, 'value':value})
 		}
-		console.log(data)
-		$.getJSON("/ajax/query", data, function(data){
+		$.getJSON("/ajax/query", JSON.stringify(criteria), function(data){
+			console.log(data)
+			var resultsDiv = $("#queryResults")
 		}) // end getJSON
 	} // end query
 </script>
