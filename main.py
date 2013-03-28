@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 from pymongo import Connection
 app = Flask(__name__)
 import unicodedata
@@ -30,9 +30,10 @@ def getKeyStats():
 	stats = makeKeysStats(collection)
 	return jsonify({"stats":stats})
 
-@app.route('/ajax/query')
+@app.route('/ajax/query', methods=['GET','POST'])
 def query():
-	data = loads(request.args.keys()[0])
+	data = request.json
+	print "received " + str(data)
 	dbName = data['dbName']
 	colName = data['colName']
 	criteriaList = data['criteria']
@@ -48,7 +49,8 @@ def query():
 		else:
 			raise Exception("Bad logicType " + item['logicType'])
 	query = collection.find(criteria)
-	return jsonify({'results':dumps(query)})
+	jsonStr = dumps({'results':query}) #converts cursor to jsonified string
+	return Response(jsonStr, mimetype='application/json')
 	
 
 def makeKeysStats(col):

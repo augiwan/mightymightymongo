@@ -91,11 +91,26 @@ function makeKeysList(keyStats){
 			//console.log("pushing something")
 			criteria['criteria'].push({'fieldName':fieldName, 'logicType':logicType, 'value':value})
 		}
-		$.getJSON("/ajax/query", JSON.stringify(criteria), function(data){
-			console.log(data)
-			var resultsDiv = $("#queryResults")
-		}) // end getJSON
+		$.ajax({
+			type:"POST",
+			url:"/ajax/query",
+			data:JSON.stringify(criteria),
+			success: resultsReceived,
+			contentType: "application/json"
+		})
 	} // end query
+	
+	
+function resultsReceived(results){
+			console.log(results)
+			data = results['results']
+			$("#queryResults").html("") //clear it
+			for(var i=0; i<data.length; i++){
+				newDiv = document.createElement('div')
+				$(newDiv).append(JSON.stringify(data[i]))
+				$("#queryResults").append(newDiv)
+			}
+		}
 </script>
 </head>
 
