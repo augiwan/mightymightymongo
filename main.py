@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, Response
 from pymongo import Connection
+from ast import literal_eval
 app = Flask(__name__)
 import unicodedata
 mongo = Connection()
@@ -36,19 +37,13 @@ def query():
 	print "received " + str(data)
 	dbName = data['dbName']
 	colName = data['colName']
-	criteriaList = data['criteria']
 	collection = mongo[dbName][colName]
-	criteria = {}
-	for item in criteriaList:
-		if item['logicType'] == 'equals':
-			criteria[item['fieldName']] = item['value']
-		elif item['logicType'] == 'in':
-			criteria[item['fieldName']] = {'$in':item['value']}
-		elif item['logicType'] == 'exists':
-			criteria[item['fieldName']] = {'$exists':True}
-		else:
-			raise Exception("Bad logicType " + item['logicType'])
+	queryText = data['queryText']
+	print "queryText is", queryText
+	criteria = literal_eval(queryText)
+	print "criteria is", criteria
 	query = collection.find(criteria)
+	print "found", query.count(), "results"
 	jsonStr = dumps({'results':query}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	

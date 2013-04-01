@@ -77,20 +77,13 @@ function makeKeysList(keyStats){
 		}
 	)
 	function query(){
-		var criteria = $("#queryBar").val()
+		var queryInputText = "{"+$("#queryInput").val() + "}"
 		var dbName = "{{db.name}}"
 		var colName = "{{col.name}}"
 		var criteria = {}
-		criteria['dbName']=dbName;criteria['colName']=colName;
-		criteria['criteria'] = []
-		var fields = $("#queryFields").children()
-		for(i=0;i<fields.length;i++){
-			var fieldName = $(fields[i]).children('.field').html()
-			var logicType = $(fields[i]).children('.logicType').val()
-			var value = $(fields[i]).children('.valueField').val()
-			//console.log("pushing something")
-			criteria['criteria'].push({'fieldName':fieldName, 'logicType':logicType, 'value':value})
-		}
+		criteria['dbName']=dbName
+		criteria['colName']=colName
+		criteria['queryText'] = queryInputText
 		$.ajax({
 			type:"POST",
 			url:"/ajax/query",
@@ -125,9 +118,12 @@ This collection has the following schemas: <br>
 
 <div id="keyStatsDiv">
 </div>
+<span style="font-size:36px">{</span><input type="text" id='queryInput' style="font-size:18px" placeholder='Type query here'><span style="font-size:36px">}</span>
 <button id="submitQuery" onclick="query()">Search</button>
 <div id="queryFields">
 </div>
+
+
 
 <div id="queryResults">
 
