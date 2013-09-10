@@ -57,26 +57,31 @@ def makeKeysStats(col):
 	ret = {}
 	return stats
 
-#def sanitizeKeyStats(stats):
-#	"takes in stats and formats it properly for javascript"
 	
 def addToKeyCount(stats, keys):
 	for key in keys:
+		keyType = keys[key][0]
+		value = keys[key][1]
 		if key in stats:
 			stats[key]['count'] += 1
-			if keys[key][0] not in stats[key]['types']:
-				stats[key]['types'].append(keys[key][0])
-			#stats[key]['types'][keys[key][0]] = True
+			if keyType not in stats[key]['types']:
+				stats[key]['types'].append(keyType)
+			
+			if value not in stats[key]['values'] and type(value) in [type(0),type(''), type(u''),type(True), type(None)]:
+				stats[key]['values'].append(value)
 		else:
-			stats[key] = {'count':1, 'types':[keys[key][0]], 'subKeys':{}}
-		if keys[key][0] == type({}).__name__: #recurse if it's a subdictionary
-			addToKeyCount(stats[key]['subKeys'], keys[key][1])
+			stats[key] = {'count':1, 'types':[keyType], 'subKeys':{}, 'values':[]}
+			print "comparing:", value, type(value), [type(0),type(''), type(u''),type(True), type(None)]
+			if type(value) in [type(0),type(''), type(u''),type(True), type(None)]:
+				stats[key]['values'].append(value)
+		if keyType == type({}).__name__: #recurse if it's a subdictionary
+			addToKeyCount(stats[key]['subKeys'], value)
 		
 def getKeys(dic):
-	"returns a dictionary of all keys and sub-keys in the dictionary"
+	"returns a dictionary of all keys and sub-keys in the dictionary.  Keys values are the key names and the values is a tuple of (key type, <subKeys>) if it's a dictionary, otherwise it's (<key type>, <value>"
 	newDic = {}
 	for key in [unicodedata.normalize('NFKD', x).encode('ascii','ignore') for x in dic.keys()]:
-		if type(dic[key]) == type({}):
+		if type(dic[key]) == type({}): ##recurse if it's a sub-dictionary
 			newDic[key] = (type({}).__name__, getKeys(dic[key]))
 		else:
 			newDic[key] = (type(dic[key]).__name__, dic[key])

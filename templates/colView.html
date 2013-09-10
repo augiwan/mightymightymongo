@@ -1,5 +1,6 @@
 <head>
 <script type="text/javascript" src="/static/jscript/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="/static/jscript/schemaAutocomplete.js"></script>
 <script type='text/javascript'>
 keyStats = 5;
 function getKeyStats(){
@@ -72,18 +73,28 @@ function makeKeysList(keyStats){
 </script>
 
 <script type='text/javascript'>
+
+	
+
+
 	$(document).ready(function(){
 		getKeyStats()
-		}
-	)
+		
+		var haystack = ["ActionScript", "AppleScript", "Asp", "BASIC"];
+		makeAutocompleteField('#query', haystack, '#autoSuggestions')
+		
+	}) //end document.ready
 	function query(){
-		var queryInputText = "{"+$("#queryInput").val() + "}"
+		var withQuotes = addQuotesToFields($("#query").val())
+		console.log("sending: " + withQuotes)
+		var queryInputText = "{"+withQuotes + "}"
 		var dbName = "{{db.name}}"
 		var colName = "{{col.name}}"
 		var criteria = {}
 		criteria['dbName']=dbName
 		criteria['colName']=colName
 		criteria['queryText'] = queryInputText
+		console.log(criteria)
 		$.ajax({
 			type:"POST",
 			url:"/ajax/query",
@@ -93,17 +104,40 @@ function makeKeysList(keyStats){
 		})
 	} // end query
 	
+	//adds to quotes around field names because we assume that fiels are strings.  This assumption is ok because mongodb requires that
+	function addQuotesToFields(string){
+		newStr = string
+		var index = 0
+		while(index < newStr.length){
+			//find start of field
+			while(newStr[index] == ' ' && index < newStr.length)
+				index++
+			newStr = newStr.substr(0,index)+"'"+newStr.substr(index,newStr.length)
+			index++
+			//find end of field
+			while(newStr[index] != ':' && index < newStr.length)
+				index++
+			newStr = newStr.substr(0,index)+"'"+newStr.substr(index,newStr.length)
+			index++
+			while(newStr[index] != ',' && index < newStr.length)
+				index++
+			index++
+		}
+		
+		return newStr
+	}
 	
 function resultsReceived(results){
-			console.log(results)
-			data = results['results']
-			$("#queryResults").html("") //clear it
-			for(var i=0; i<data.length; i++){
-				newDiv = document.createElement('div')
-				$(newDiv).append(JSON.stringify(data[i]))
-				$("#queryResults").append(newDiv)
-			}
-		}
+	console.log("printing results")	
+	console.log(results)
+	data = results['results']
+	$("#queryResults").html("") //clear it
+	for(var i=0; i<data.length; i++){
+		newDiv = document.createElement('div')
+		$(newDiv).append(JSON.stringify(data[i]))
+		$("#queryResults").append(newDiv)
+	}
+}
 </script>
 </head>
 
@@ -116,16 +150,10 @@ This collection has {{col.count()}} entries.
 
 This collection has the following schemas: <br>
 
-<div id="keyStatsDiv">
-</div>
-<span style="font-size:36px">{</span><input type="text" id='queryInput' style="font-size:18px" placeholder='Type query here'><span style="font-size:36px">}</span>
-<button id="submitQuery" onclick="query()">Search</button>
-<div id="queryFields">
-</div>
-
-
-
-<div id="queryResults">
-
-</div>
+<div id="keyStatsDiv"></div>
+<div id="autoSuggestions"></div>
+<input type="text" name="query" placeholder="type query" id="query" style="width:100%;font-size:30px" />
+<button style="font-size:30px" onclick="query()">Query</button>
+<br>
+<div id="queryResults"></div>
 </body>
