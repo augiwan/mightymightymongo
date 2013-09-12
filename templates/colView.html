@@ -1,6 +1,8 @@
 <head>
 <script type="text/javascript" src="/static/jscript/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="/static/jscript/schemaAutocomplete.js"></script>
+<script type="text/javascript" src="/static/jscript/utilities.js"></script>
+<script type="text/javascript" src="/static/jscript/makeDOM.js"></script>
 <script type='text/javascript'>
 keyStats = 5;
 function getKeyStats(){
@@ -82,6 +84,7 @@ function makeKeysList(keyStats){
 		
 		var haystack = ["ActionScript", "AppleScript", "Asp", "BASIC"];
 		makeAutocompleteField('#query', haystack, '#autoSuggestions')
+		makeAutocompleteField('#showFields', haystack, '#autoSuggestions')
 		
 	}) //end document.ready
 	function query(){
@@ -94,6 +97,8 @@ function makeKeysList(keyStats){
 		criteria['dbName']=dbName
 		criteria['colName']=colName
 		criteria['queryText'] = queryInputText
+		criteria['selectFields'] = CSV2Array($("#selectFields").val())
+		criteria['queryLimit'] = parseInt($("#queryLimit").val())
 		console.log(criteria)
 		$.ajax({
 			type:"POST",
@@ -102,9 +107,63 @@ function makeKeysList(keyStats){
 			success: resultsReceived,
 			contentType: "application/json"
 		})
+		
+		function resultsReceived(results){
+			console.log("printing results")	
+			console.log(results)
+			data = results['results']
+			$("#queryResults").html("") //clear it
+			for(var i=0; i<data.length; i++){
+				var document = data[i]
+				var newDiv = makeDiv()
+				var newImg = makeImg("/static/images/expandLogo.png")
+				$(newImg).attr('height', 15)
+				$(newImg).attr('onclick', "loadDocument()")
+				$(newDiv).append(newImg)
+				
+				var summary = makeDiv(); $(summary).attr('class', 'summary')
+				$(summary).append(JSON.stringify(document))
+				
+				$(newDiv).attr('objid', data[i]['_id']['$oid'])
+				var expandDiv = makeDiv(); $(expandDiv).attr('class', 'expandDetails'); $(expandDiv).css('height','100px'),$(expandDiv).css('display', 'none')
+				$(newDiv).append(summary)
+				$(newDiv).append(expandDiv)
+				$("#queryResults").append(newDiv)
+			}
+		} // end resultsReceived
+		
 	} // end query
 	
-	//adds to quotes around field names because we assume that fiels are strings.  This assumption is ok because mongodb requires that
+	//takes in an objectID (as a string) and returns that document
+	function loadDocument(e){
+		var sender = (e && e.target) || (window.event && window.event.srcElement);
+		var container = $(sender).parent()
+		objID = container.attr('objid')
+		var dbName = "{{db.name}}"
+		var colName = "{{col.name}}"
+		var criteria = {}
+		criteria['dbName']=dbName
+		criteria['colName']=colName
+		criteria['objID'] = objID
+		console.log(JSON.stringify(criteria))
+		$.ajax({
+			type:"POST",
+			url:"/ajax/loadDocument",
+			data:JSON.stringify(criteria),
+			success: documentReceived,
+			contentType: "application/json"
+		})
+		
+		function documentReceived(document){
+			var expandDetails = $(container).children('.expandDetails')
+			var summary = $(container).children('.summary')
+			summary.slideUp()
+			expandDetails.slideDown()
+			$(expandDetails).append(JSON.stringify(document['results']))
+		}
+	} // end loadDocument
+	
+	//takes in a query string and adds to quotes around field names because we assume that fiels are strings.  This assumption is ok because mongodb requires that
 	function addQuotesToFields(string){
 		newStr = string
 		var index = 0
@@ -127,17 +186,18 @@ function makeKeysList(keyStats){
 		return newStr
 	}
 	
-function resultsReceived(results){
-	console.log("printing results")	
-	console.log(results)
-	data = results['results']
-	$("#queryResults").html("") //clear it
-	for(var i=0; i<data.length; i++){
-		newDiv = document.createElement('div')
-		$(newDiv).append(JSON.stringify(data[i]))
-		$("#queryResults").append(newDiv)
+	//converts Commas Separated Values to an array
+	function CSV2Array(string){
+		var splitStr = string.split(',')
+		var trimmedLst = []
+		for(var i=0; i<splitStr.length; i++){
+			var trimmed = splitStr[i].trim()
+			if(trimmed)
+				trimmedLst.push(trimmed)
+		}
+		return trimmedLst
 	}
-}
+
 </script>
 </head>
 
@@ -153,6 +213,8 @@ This collection has the following schemas: <br>
 <div id="keyStatsDiv"></div>
 <div id="autoSuggestions"></div>
 <input type="text" name="query" placeholder="type query" id="query" style="width:100%;font-size:30px" />
+<input type="text" name="selectFields" placeholder="what fields should be shown" id="selectFields", value='gender' style='width:50%;font-size:30px' /><br>
+<input type="number" value=5 id='queryLimit'>
 <button style="font-size:30px" onclick="query()">Query</button>
 <br>
 <div id="queryResults"></div>

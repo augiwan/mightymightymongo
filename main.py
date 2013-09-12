@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request, Response
 from pymongo import Connection
 from ast import literal_eval
+from bson.objectid import ObjectId
 app = Flask(__name__)
 import unicodedata
 mongo = Connection()
@@ -42,11 +43,31 @@ def query():
 	print "queryText is", queryText
 	criteria = literal_eval(queryText)
 	print "criteria is", criteria
-	query = collection.find(criteria)
+	selectFields = data['selectFields']
+	queryLimit = data['queryLimit']
+	selectFieldsDic = dict((item, 1) for item in selectFields)
+	if(selectFieldsDic): # if specific fields were specified
+		query = collection.find(criteria, selectFieldsDic)
+	else:
+		query = collection.find(criteria)
+	query.limit(queryLimit)
 	print "found", query.count(), "results"
 	jsonStr = dumps({'results':query}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	
+
+@app.route('/ajax/loadDocument', methods=['GET','POST'])
+def loadDocument():
+	data = request.json
+	dbName = data['dbName']
+	colName = data['colName']
+	collection = mongo[dbName][colName]
+	objID = ObjectId(data['objID'])
+	
+	query = collection.find_one({'_id':objID})
+	jsonStr = dumps({'results':query}) #convert result to jsonified string
+	
+	return Response(jsonStr, mimetype='application/json')
 
 def makeKeysStats(col):
 	"returns stats about each key"
