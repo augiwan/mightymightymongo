@@ -10,3 +10,11 @@ function makeImg(source){
 	
 	return newImg
 }
+
+function makeUl(){
+	return document.createElement('ul')
+}
+
+function makeLi(){
+	return document.createElement('li')
+}

@@ -3,6 +3,8 @@
 <script type="text/javascript" src="/static/jscript/schemaAutocomplete.js"></script>
 <script type="text/javascript" src="/static/jscript/utilities.js"></script>
 <script type="text/javascript" src="/static/jscript/makeDOM.js"></script>
+
+
 <script type='text/javascript'>
 keyStats = 5;
 function getKeyStats(){
@@ -56,6 +58,7 @@ function addKeyChainToCriteria(keyChain){
 	$(newCriteria).append(valueField)
 	$("#queryFields").append(newCriteria)
 }
+//takes in the key stats from the server and makes a DOM HTML list
 function makeKeysList(keyStats){
 	var list = document.createElement('ul')
 	for (var key in keyStats){
@@ -68,6 +71,23 @@ function makeKeysList(keyStats){
 		$(li).click(addToCriteria)
 		if(Object.keys(keyStats[key]['subKeys']).length > 0)
 			$(li).append(makeKeysList(keyStats[key]['subKeys']))
+		$(list).append(li)
+	}
+	return list
+} //end makeKeysList
+
+//takes in a single document and turns it into an expandable DOM HTML list
+function makeDocExpandList(document){
+	var list = makeUl()
+	for (var key in document){
+		var val = document[key]
+		var li = makeLi()
+		if (!isDic(val)) // if it's not dictionary, just print it
+			$(li).append(key+': '+val)
+		else{ //recurse into it
+			$(li).append(key+': ')
+			$(li).append(makeDocExpandList(val))
+		}
 		$(list).append(li)
 	}
 	return list
@@ -116,16 +136,20 @@ function makeKeysList(keyStats){
 			for(var i=0; i<data.length; i++){
 				var document = data[i]
 				var newDiv = makeDiv()
+				$(newDiv).data('detailsLoaded', false) //have the details already been loaded?
 				var newImg = makeImg("/static/images/expandLogo.png")
 				$(newImg).attr('height', 15)
-				$(newImg).attr('onclick', "loadDocument()")
-				$(newDiv).append(newImg)
+				$(newImg).css('float', 'left')
+				$(newImg).attr('onclick', "showDetails()")
+				
 				
 				var summary = makeDiv(); $(summary).attr('class', 'summary')
+				$(summary).css({'background-color':'#B8B8B8', 'margin-bottom':'5px'})
+				$(summary).attr('onclick', "showDetails()")
 				$(summary).append(JSON.stringify(document))
-				
-				$(newDiv).attr('objid', data[i]['_id']['$oid'])
-				var expandDiv = makeDiv(); $(expandDiv).attr('class', 'expandDetails'); $(expandDiv).css('height','100px'),$(expandDiv).css('display', 'none')
+				var expandDiv = makeDiv(); $(expandDiv).attr('class', 'expandDetails'); $(expandDiv).css('display', 'none')
+				$(newDiv).append(newImg)
+				$(newDiv).data('objID', data[i]['_id']['$oid'])
 				$(newDiv).append(summary)
 				$(newDiv).append(expandDiv)
 				$("#queryResults").append(newDiv)
@@ -134,18 +158,30 @@ function makeKeysList(keyStats){
 		
 	} // end query
 	
-	//takes in an objectID (as a string) and returns that document
-	function loadDocument(e){
+	//takes in the event handler for a clicked "expand" icon and loads (if necessary) then displays the details
+	function showDetails(e){
 		var sender = (e && e.target) || (window.event && window.event.srcElement);
 		var container = $(sender).parent()
-		objID = container.attr('objid')
+		var detailsDiv = $(container).children('.expandDetails')
+		objID = $(container).data('objID')
+		console.log('obj id is ' + objID)
+		if(!$(container).data('detailsLoaded')){ //if the details have not been loaded yet
+			loadDocument(detailsDiv, objID)
+			container.data('detailsLoaded', true)
+		}
+		detailsDiv.slideToggle()
+		
+		
+	}
+	
+	//takes in an objectID (as a string) and returns that document
+	function loadDocument(detailsDiv, objID){
 		var dbName = "{{db.name}}"
 		var colName = "{{col.name}}"
 		var criteria = {}
 		criteria['dbName']=dbName
 		criteria['colName']=colName
 		criteria['objID'] = objID
-		console.log(JSON.stringify(criteria))
 		$.ajax({
 			type:"POST",
 			url:"/ajax/loadDocument",
@@ -155,11 +191,8 @@ function makeKeysList(keyStats){
 		})
 		
 		function documentReceived(document){
-			var expandDetails = $(container).children('.expandDetails')
-			var summary = $(container).children('.summary')
-			summary.slideUp()
-			expandDetails.slideDown()
-			$(expandDetails).append(JSON.stringify(document['results']))
+			$(detailsDiv).append(makeDocExpandList(document['results']))
+			
 		}
 	} // end loadDocument
 	
@@ -186,17 +219,28 @@ function makeKeysList(keyStats){
 		return newStr
 	}
 	
-	//converts Commas Separated Values to an array
-	function CSV2Array(string){
-		var splitStr = string.split(',')
-		var trimmedLst = []
-		for(var i=0; i<splitStr.length; i++){
-			var trimmed = splitStr[i].trim()
-			if(trimmed)
-				trimmedLst.push(trimmed)
-		}
-		return trimmedLst
+//converts Commas Separated Values to an array
+function CSV2Array(string){
+	var splitStr = string.split(',')
+	var trimmedLst = []
+	for(var i=0; i<splitStr.length; i++){
+		var trimmed = splitStr[i].trim()
+		if(trimmed)
+			trimmedLst.push(trimmed)
 	}
+	return trimmedLst
+}
+
+//toggle the expansion and contraction of the key stats div
+function toggleExpandKeyStatsDiv(){
+	var div = $('#keyStatsDiv')
+	var reducedHeight = div.height();
+	div.css('height', 'auto')
+	var fullHeight = div.height();
+	div.height(reducedHeight).animate({height: fullHeight}, 500);
+}
+	
+	
 
 </script>
 </head>
@@ -210,7 +254,10 @@ This collection has {{col.count()}} entries.
 
 This collection has the following schemas: <br>
 
-<div id="keyStatsDiv"></div>
+<div id="keyStatsDiv" style='height:100px;overflow:hidden;position:relative'>
+	<!--<div id='shadowDiv' style="position:absolute;bottom:0;height:3px;width:100%;background-color:orange;box-shadow:0px -10px 0px #000000;"></div>-->
+</div>
+<a href="javascript:toggleExpandKeyStatsDiv()">Click To Expand</a>
 <div id="autoSuggestions"></div>
 <input type="text" name="query" placeholder="type query" id="query" style="width:100%;font-size:30px" />
 <input type="text" name="selectFields" placeholder="what fields should be shown" id="selectFields", value='gender' style='width:50%;font-size:30px' /><br>
