@@ -5,6 +5,7 @@
 <script type="text/javascript" src="/static/jscript/makeDOM.js"></script>
 
 
+
 <script type='text/javascript'>
 keyStats = 5;
 function getKeyStats(){
@@ -73,13 +74,15 @@ function makeKeysList(keyStats){
 			$(li).append(makeKeysList(keyStats[key]['subKeys']))
 		$(list).append(li)
 	}
-	return list
+	return lisß
 } //end makeKeysList
 
 //takes in a single document and turns it into an expandable DOM HTML list
 function makeDocExpandList(document){
 	var list = makeUl()
-	for (var key in document){
+	var sortedKeys = Object.keys(document).sort()
+	for (var index in sortedKeys){
+		var key = sortedKeys[index]
 		var val = document[key]
 		var li = makeLi()
 		if (!isDic(val)) // if it's not dictionary, just print it
@@ -104,7 +107,7 @@ function makeDocExpandList(document){
 		
 		var haystack = ["ActionScript", "AppleScript", "Asp", "BASIC"];
 		makeAutocompleteField('#query', haystack, '#autoSuggestions')
-		makeAutocompleteField('#showFields', haystack, '#autoSuggestions')
+		//makeAutocompleteField('#showFields', haystack, '#autoSuggestions')
 		
 	}) //end document.ready
 	function query(){
@@ -233,15 +236,22 @@ function CSV2Array(string){
 
 //toggle the expansion and contraction of the key stats div
 function toggleExpandKeyStatsDiv(){
-	var div = $('#keyStatsDiv')
-	var reducedHeight = div.height();
-	div.css('height', 'auto')
-	var fullHeight = div.height();
-	div.height(reducedHeight).animate({height: fullHeight}, 500);
-}
-	
-	
-
+		var div = $('#keyStatsDiv')
+		var link = $('#expandKeysLink')
+		if ($(div).data('expanded')) { //already expanded
+			div.animate({'height': $(div).data('cutoff')}, 500);
+			$(div).data('expanded', false)
+			link.html('Expand')
+		}
+		else{ //needs to be expanded
+			div.css('height', 'auto')
+			var fullHeight = div.height()
+			div.css('height', $(div).data('cutoff'))
+			div.animate({'height': fullHeight}, 500);
+			$(div).data('expanded', true)
+			link.html('Hide')	
+		}
+	}
 </script>
 </head>
 
@@ -254,13 +264,12 @@ This collection has {{col.count()}} entries.
 
 This collection has the following schemas: <br>
 
-<div id="keyStatsDiv" style='height:100px;overflow:hidden;position:relative'>
-	<!--<div id='shadowDiv' style="position:absolute;bottom:0;height:3px;width:100%;background-color:orange;box-shadow:0px -10px 0px #000000;"></div>-->
+<div id="keyStatsDiv" data-expanded="false" data-cutoff='100px' style='height:100px;overflow:hidden;position:relative'>
 </div>
-<a href="javascript:toggleExpandKeyStatsDiv()">Click To Expand</a>
+<a id='expandKeysLink' href="javascript:toggleExpandKeyStatsDiv()">Expand</a>
 <div id="autoSuggestions"></div>
-<input type="text" name="query" placeholder="type query" id="query" style="width:100%;font-size:30px" />
-<input type="text" name="selectFields" placeholder="what fields should be shown" id="selectFields", value='gender' style='width:50%;font-size:30px' /><br>
+<input type="text" name="query" placeholder="type query" value="yearBorn:1988" id="query" style="width:100%;font-size:30px" />
+<input type="text" name="selectFields" placeholder="what fields should be shown" id="selectFields", value='email' style='width:50%;font-size:30px' /><br>
 <input type="number" value=5 id='queryLimit'>
 <button style="font-size:30px" onclick="query()">Query</button>
 <br>
