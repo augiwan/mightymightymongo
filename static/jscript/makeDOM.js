@@ -18,3 +18,22 @@ function makeUl(){
 function makeLi(){
 	return document.createElement('li')
 }
+
+function makeTable(){
+	return document.createElement('table')
+}
+
+//html is an optional parameter.  If not include, an empty <tr> is provided
+function makeTr(html){
+	html = (typeof html === "undefined") ? "" : html;
+	var newTr = document.createElement('tr')
+	$(newTr).html(html)
+	return newTr
+}
+//html is an optional parameter.  If not include, an empty <td> is provided
+function makeTd(content){
+	content = (typeof content === "undefined") ? "" : content;
+	var newTd = document.createElement('td')
+	$(newTd).html(content)
+	return newTd
+}

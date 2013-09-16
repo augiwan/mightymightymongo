@@ -1,18 +1,16 @@
 function makeAutocompleteField(queryField, haystack, suggestionsDiv){
 	$(queryField).keyup(function()
 	{
-		
-		
 		var querySoFar = $(queryField).val()
-		
 		var keyChain = getCurrentKeyChain(querySoFar)
 		var	prevFields = keyChain.splice(0, keyChain.length-1)
-
 		var curField = keyChain.reverse()[0]
 		var queryLen = curField.length
+		
+		var curSuggIndex = $(suggestionsDiv).data('hilightedsuggestion')
 		$(suggestionsDiv).html('')
 		
-		$(suggestionsDiv).append("<div>")
+		//$(suggestionsDiv).append("<div>")
 		for(var index in prevFields){
 			$(suggestionsDiv).append(prevFields[index]+" > ")
 		}
@@ -25,12 +23,16 @@ function makeAutocompleteField(queryField, haystack, suggestionsDiv){
 	if(isTypingField(querySoFar)){
 		if(queryLen == 0)
 			return
-		for (var key in subKeyStats){
+		keysSorted = Object.keys(subKeyStats).sort()
+		for (var index in keysSorted){
+			key = keysSorted[index]
 			if(key.substr(0,queryLen) == curField){
-				$(suggestionsDiv).append("<div>"+key+"</div>")
+				var newSugg = makeDiv(); $(newSugg).html(key)
+				if(index == curSuggIndex)
+					$(newSugg).css('background-color','grey')
+				$(suggestionsDiv).append(newSugg)
 			}
 		}
-	
 	} // end isTypingField
 	
 	else if(isTypingValue(querySoFar)){
@@ -45,10 +47,24 @@ function makeAutocompleteField(queryField, haystack, suggestionsDiv){
 		for (var index in values)
 			$(suggestionsDiv).append("<div>"+values[index]+"</div>")
 	}
+	
+	}) // end $(queryField).keyup...
+	
+	
+	$(queryField).keydown(function(key){
+		if(key['keyCode'] == 40){
+			selectNextSuggestion()
+		}
 	})
 	
+	//hilights the next suggestion in the box
+	function selectNextSuggestion(){
+		var curIndex = $(suggestionsDiv).data('hilightedsuggestion')
+		$(suggestionsDiv).data('hilightedsuggestion', curIndex+1)
+	}
 	
-}
+} //end makeAutoCompleteField
+
 
 
 // returns true if the user is currently typing in a field name
