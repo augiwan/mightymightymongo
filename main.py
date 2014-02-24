@@ -109,4 +109,5 @@ def getKeys(dic):
 	return newDic
 
 if __name__ == '__main__':
+	app.static_url_path='static'
 	app.run(debug=True)

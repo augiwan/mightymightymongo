@@ -4,6 +4,12 @@ function makeDiv(){
 	return document.createElement('div')
 }
 
+function makeInputText(){
+	var inpt = document.createElement('input')
+	inpt.setAttribute('type', 'text')
+	return inpt
+}
+
 function makeImg(source){
 	var newImg = document.createElement('img')
 	newImg.setAttribute('src', source)
