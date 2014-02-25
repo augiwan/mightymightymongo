@@ -1,194 +1,43 @@
 <head>
-<script type="text/javascript" src="/static/jscript/jquery-1.7.1.min.js"></script>
-
-<script type="text/javascript" src="/static/jscript/schemaAutocomplete.js"></script>
-<script type="text/javascript" src="/static/jscript/utilities.js"></script>
-<script type="text/javascript" src="/static/jscript/makeDOM.js"></script>
-
-
-<script>
-//this must go before importing colView.js to set the DB names
-//it must be done this way because Jinja won't render imorted javascript
-dbName = "{{db.name}}"
-colName = "{{col.name}}"
-</script>
-<script type="text/javascript" src="/static/jscript/colView.js"></script>
-<script type='text/javascript'>
-	$(document).ready(function(){
-		getKeyStats()
-		
-		var haystack = ["ActionScript", "AppleScript", "Asp", "BASIC"];
-		makeAutocompleteField('#query', haystack, '#autoSuggestions')
-		query()
-		
-	}) //end document.ready
-	function query(){
-		var withQuotes = addQuotesToFields($("#query").val())
-		console.log("sending: " + withQuotes)
-		var queryInputText = "{"+withQuotes + "}"
-		var dbName = "{{db.name}}"
-		var colName = "{{col.name}}"
-		var criteria = {}
-		criteria['dbName']=dbName
-		criteria['colName']=colName
-		criteria['queryText'] = queryInputText
-		criteria['selectFields'] = CSV2Array($("#selectFields").val())
-		criteria['queryLimit'] = parseInt($("#queryLimit").val())
-		console.log(criteria)
-		$.ajax({
-			type:"POST",
-			url:"/ajax/query",
-			data:JSON.stringify(criteria),
-			success: resultsReceived,
-			contentType: "application/json"
-		})
-		
-		function resultsReceived(results){
-			console.log("printing results")	
-			console.log(results)
-			data = results['results']
-			$("#queryResults").html("") //clear it
-			var metaData = makeDiv()
-			$(metaData).append("Returned " + data.length + " documents")
-			$("#queryResults").append(metaData)
-			for(var i=0; i<data.length; i++){
-				var document = data[i]
-				var newDiv = makeDiv()
-				$(newDiv).data('detailsLoaded', false) //have the details already been loaded?
-				var newImg = makeImg("/static/images/expandLogo.png")
-				$(newImg).attr('height', 15)
-				$(newImg).css('float', 'left')
-				$(newImg).attr('onclick', "showDetails()")
-				
-				
-				var summary = makeDiv(); $(summary).attr('class', 'summary')
-				$(summary).css({'background-color':'#B8B8B8', 'margin-bottom':'5px'})
-				$(summary).attr('onclick', "showDetails()")
-				$(summary).append(JSON.stringify(document))
-				var expandDiv = makeDiv(); $(expandDiv).attr('class', 'expandDetails'); $(expandDiv).css('display', 'none')
-				$(newDiv).append(newImg)
-				$(newDiv).data('objID', data[i]['_id']['$oid'])
-				$(newDiv).append(summary)
-				$(newDiv).append(expandDiv)
-				$("#queryResults").append(newDiv)
-			}
-		} // end resultsReceived
-		
-	} // end query
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
+	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
+	<script src="/static/jscript/colView.js"></script>
+	<script src="/static/jscript/jquery.hotkeys.js"></script>
 	
-	//takes in the event handler for a clicked "expand" icon and loads (if necessary) then displays the details
-	function showDetails(e){
-		var sender = (e && e.target) || (window.event && window.event.srcElement);
-		var container = $(sender).parent()
-		var detailsDiv = $(container).children('.expandDetails')
-		objID = $(container).data('objID')
-		console.log('obj id is ' + objID)
-		if(!$(container).data('detailsLoaded')){ //if the details have not been loaded yet
-			loadDocument(detailsDiv, objID)
-			container.data('detailsLoaded', true)
-		}
-		detailsDiv.slideToggle()
-		
-		
-	}
+	<script>
+	$(document).bind('keydown', 'ctrl+a', changeValueType);
+	$(document).ready(function(){appendCriteriaField()})
+	</script>
 	
-	//takes in an objectID (as a string) and returns that document
-	function loadDocument(detailsDiv, objID){
-		var dbName = "{{db.name}}"
-		var colName = "{{col.name}}"
-		var criteria = {}
-		criteria['dbName']=dbName
-		criteria['colName']=colName
-		criteria['objID'] = objID
-		$.ajax({
-			type:"POST",
-			url:"/ajax/loadDocument",
-			data:JSON.stringify(criteria),
-			success: documentReceived,
-			contentType: "application/json"
-		})
-		
-		function documentReceived(document){
-			$(detailsDiv).append(makeDocExpandList(document['results']))
-			
-		}
-	} // end loadDocument
-	
-	//takes in a query string and adds to quotes around field names because we assume that fiels are strings.  This assumption is ok because mongodb requires that
-	function addQuotesToFields(string){
-		newStr = string
-		var index = 0
-		while(index < newStr.length){
-			//find start of field
-			while(newStr[index] == ' ' && index < newStr.length)
-				index++
-			newStr = newStr.substr(0,index)+"'"+newStr.substr(index,newStr.length)
-			index++
-			//find end of field
-			while(newStr[index] != ':' && index < newStr.length)
-				index++
-			newStr = newStr.substr(0,index)+"'"+newStr.substr(index,newStr.length)
-			index++
-			while(newStr[index] != ',' && index < newStr.length)
-				index++
-			index++
-		}
-		
-		return newStr
-	}
-	
-//converts Commas Separated Values to an array
-function CSV2Array(string){
-	var splitStr = string.split(',')
-	var trimmedLst = []
-	for(var i=0; i<splitStr.length; i++){
-		var trimmed = splitStr[i].trim()
-		if(trimmed)
-			trimmedLst.push(trimmed)
-	}
-	return trimmedLst
-}
-
-//toggle the expansion and contraction of the key stats div
-function toggleExpandKeyStatsDiv(){
-		var div = $('#keyStatsDiv')
-		var link = $('#expandKeysLink')
-		if ($(div).data('expanded')) { //already expanded
-			div.animate({'height': $(div).data('cutoff')}, 500);
-			$(div).data('expanded', false)
-			link.html('Expand')
-		}
-		else{ //needs to be expanded
-			div.css('height', 'auto')
-			var fullHeight = div.height()
-			div.css('height', $(div).data('cutoff'))
-			div.animate({'height': fullHeight}, 500);
-			$(div).data('expanded', true)
-			link.html('Hide')	
-		}
-	}
-</script>
 </head>
 
-<body>
-<a href='/'>Home</a> -> <a href="/db/{{db.name}}">{{db.name}}</a>
-<h3 style="color:red">NOTE: Only analyzing 100 records to make schema, for efficiency</h3>
-Collection: {{col.name}}
-<br><br>
-This collection has {{col.count()}} entries.
+<body style="padding:20px;">
+<div id="breadCrumbPath"><h2>Home -> TWC -> Users</h2></div>
+<div id="schema">
+	<ul>
+	<li>Name {dictionary}
+		<ul>
+		<li>FirstName {string}</li>
+		<li>LastName {string}</li>
+		</ul>		
+	</li>
+	<li>Age {int}</li>
+	</ul>
+</div> <!--Schema div -->
 
-This collection has the following schemas: <br>
-
-<div id="keyStatsDiv" data-expanded="false" data-cutoff='100px' style='height:100px;overflow:hidden;position:relative'>
-</div>
-<a id='expandKeysLink' href="javascript:toggleExpandKeyStatsDiv()">Expand</a>
-<div id='autoSuggestions'></div>
-<input type="text" name="query" placeholder="type query" id="query" style="width:100%;font-size:30px" />
-<!--<div id='suggestionsBox' data-hilightedsuggestion='-1' style="background-color:white;width:40%;height:100px; position:absolute;right:50%; border:3px black solid;" ></div> -->
-<input type="text" name="selectFields" placeholder="what fields should be shown" id="selectFields", value='email' style='width:50%;font-size:30px' /><br>
-<input type="number" value=5 id='queryLimit'>
-<button style="font-size:30px" onclick="query()">Query</button>
-<br>
-<div id="queryResults"></div>
-<div id="fields2Update" style="position:fixed;bottom:0px;font-size:30px;background-color:grey;width:100%">Change Vals Here</div>
+<div style="margin-bottom:20px;" id="queryDiv">
+<h2>Query Div</h2>
+	<!--appendCriteriaField dynamically puts fields here -->
+	<button>Add Field</button>
+</div> <!--queryDiv-->
+<button>Search</button>
+<div id="resultsDiv">
+	<div class=resultSummary>
+		<img class="operatorIcon" src="/static/images/expandLogo.png"></img>{email:jacobgheller@gmail.com, yearBorn:1988}
+	</div>
+	<div class=resultSummary>
+		<img class="operatorIcon" src="/static/images/expandLogo.png"></img>{email:daniel@thewelcomingcommittee.com, yearBorn:1984}
+	</div>
+</div> <!--resultsDiv-->
 </body>

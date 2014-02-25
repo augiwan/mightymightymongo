@@ -1,0 +1,11 @@
+input, select{
+	height:30px;
+}
+
+.resultSummary, .oneCrit{
+	height:30px;
+}
+
+.operatorIcon{
+	height:100%;
+}

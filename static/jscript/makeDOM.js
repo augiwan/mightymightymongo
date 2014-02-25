@@ -28,6 +28,14 @@ function makeLi(){
 function makeTable(){
 	return document.createElement('table')
 }
+function makeSelect(){
+	return document.createElement('select')
+}
+function makeOption(val, html){
+	newEl = document.createElement('option')
+	$(newEl).attr('value', val)
+	$(newEl).html(html)
+}
 
 //html is an optional parameter.  If not include, an empty <tr> is provided
 function makeTr(html){
