@@ -3,11 +3,15 @@
 	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
 	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
 	<script src="/static/jscript/colView.js"></script>
+	<script src="/static/jscript/printDocument.js"></script>
 	<script src="/static/jscript/jquery.hotkeys.js"></script>
 	
 	<script>
-	$(document).bind('keydown', 'ctrl+a', changeValueType);
+	//$(document).bind('keydown', 'ctrl+a', changeValueType);
 	$(document).ready(function(){appendCriteriaField()})
+	
+	dbName = "{{dbName}}"
+	colName = "{{colName}}"
 	</script>
 	
 </head>
@@ -28,16 +32,12 @@
 
 <div style="margin-bottom:20px;" id="queryDiv">
 <h2>Query Div</h2>
+	<button onclick="javascript:appendCriteriaField()">Add Field</button>
 	<!--appendCriteriaField dynamically puts fields here -->
-	<button>Add Field</button>
 </div> <!--queryDiv-->
-<button>Search</button>
+<div><input type="text" id="fields2Show" placeholder="Fields To Show"></div>
+<button onclick="javascript:query()">Search</button>
 <div id="resultsDiv">
-	<div class=resultSummary>
-		<img class="operatorIcon" src="/static/images/expandLogo.png"></img>{email:jacobgheller@gmail.com, yearBorn:1988}
-	</div>
-	<div class=resultSummary>
-		<img class="operatorIcon" src="/static/images/expandLogo.png"></img>{email:daniel@thewelcomingcommittee.com, yearBorn:1984}
-	</div>
+	<!--results will be placed here by javascript
 </div> <!--resultsDiv-->
 </body>

@@ -22,7 +22,7 @@ def dbView(dbName):
 def colView(dbName, colName):
 	db = mongo[dbName]
 	col = db[colName]
-	return render_template('colView.html', db=db, col=col)
+	return render_template('colView.html',dbName=dbName,colName=colName)
 
 @app.route('/ajax/getkeystats/')
 def getKeyStats():
@@ -39,19 +39,11 @@ def query():
 	dbName = data['dbName']
 	colName = data['colName']
 	collection = mongo[dbName][colName]
-	queryText = data['queryText']
-	print "queryText is", queryText
-	criteria = literal_eval(queryText)
-	print "criteria is", criteria
-	selectFields = data['selectFields']
-	queryLimit = data['queryLimit']
-	selectFieldsDic = dict((item, 1) for item in selectFields)
-	if(selectFieldsDic): # if specific fields were specified
-		query = collection.find(criteria, selectFieldsDic)
-	else:
-		query = collection.find(criteria)
-	query.limit(queryLimit)
-	print "found", query.count(), "results"
+	queryCrit = data['query']
+	
+	selectFields = {'_id':1} #which fields are sent to display
+	#query = collection.find(queryCrit, selectFields)
+	query = collection.find({'email':'jacobgheller@gmail.com'}, selectFields)
 	jsonStr = dumps({'results':query}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	
@@ -65,7 +57,7 @@ def loadDocument():
 	objID = ObjectId(data['objID'])
 	
 	query = collection.find_one({'_id':objID})
-	jsonStr = dumps({'results':query}) #convert result to jsonified string
+	jsonStr = dumps({'doc':query}) #convert result to jsonified string
 	
 	return Response(jsonStr, mimetype='application/json')
 
