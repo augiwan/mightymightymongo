@@ -62,39 +62,24 @@ def loadDocument():
 	
 	return Response(jsonStr, mimetype='application/json')
 
-def makeKeyStats(db,col):
-	output = os.popen('''mongo %s --eval "var collection = '%s', limit = 1" variety-master/variety.js''' % (db, col) ).read()
-	output = output.split('\n')
-	output = output[10:-1] # first ten lines are just printouts, the last is an empty string
+@app.route('/ajax/getschema', methods=['GET','POST'])
+def getKeyStats():
+	print "get schema"
+	data = request.json
+	print "test1"
+	db = data['dbName']
+	col = data['colName']
+	output = os.popen('''mongo %s --eval "var collection = '%s'" variety-master/variety.js''' % (db, col) ).read()
+	output = output.split('\n')[:]
 	
-def addToKeyCount(stats, keys):
-	for key in keys:
-		keyType = keys[key][0]
-		value = keys[key][1]
-		if key in stats:
-			stats[key]['count'] += 1
-			if keyType not in stats[key]['types']:
-				stats[key]['types'].append(keyType)
-			
-			if value not in stats[key]['values'] and type(value) in [type(0),type(''), type(u''),type(True), type(None)]:
-				stats[key]['values'].append(value)
-		else:
-			stats[key] = {'count':1, 'types':[keyType], 'subKeys':{}, 'values':[]}
-			print "comparing:", value, type(value), [type(0),type(''), type(u''),type(True), type(None)]
-			if type(value) in [type(0),type(''), type(u''),type(True), type(None)]:
-				stats[key]['values'].append(value)
-		if keyType == type({}).__name__: #recurse if it's a subdictionary
-			addToKeyCount(stats[key]['subKeys'], value)
-		
-def getKeys(dic):
-	"returns a dictionary of all keys and sub-keys in the dictionary.  Keys values are the key names and the values is a tuple of (key type, <subKeys>) if it's a dictionary, otherwise it's (<key type>, <value>"
-	newDic = {}
-	for key in [unicodedata.normalize('NFKD', x).encode('ascii','ignore') for x in dic.keys()]:
-		if type(dic[key]) == type({}): ##recurse if it's a sub-dictionary
-			newDic[key] = (type({}).__name__, getKeys(dic[key]))
-		else:
-			newDic[key] = (type(dic[key]).__name__, dic[key])
-	return newDic
+	#evaled = [literal_eval(i) for i in output]
+	evaled = []
+	for i in output:
+		try:
+			evaled.append(literal_eval(i))
+		except SyntaxError:
+			pass
+	return Response(dumps({'schema':evaled}), mimetype='application/json')
 
 if __name__ == '__main__':
 	app.static_url_path='static'

@@ -120,3 +120,24 @@ function loadDoc(div){
 	
 	$(div).data('loaded', true)
 }
+
+function loadSchema(){
+	console.log('getting schema')
+	var data = {}
+	data['dbName'] = dbName
+	data['colName'] = colName
+	$.ajax({url:'/ajax/getschema', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:schemaReceived})
+	
+	function schemaReceived(data){
+		var schemaDiv = $("#schema")
+		$(schemaDiv).html('')
+		schema = data['schema']
+		for(i=0;i<schema.length;i++){
+			var curKey = schema[i]
+			var newDiv = $("<div>", {'class':'oneKeyContainer'})
+			newDiv.append(curKey['_id']['key']+': ' + curKey['percentContaining']+"% (" + curKey['value']['type'] + ")") 
+			$(schemaDiv).append(newDiv)
+		}
+	
+	}
+}
