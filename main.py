@@ -23,7 +23,8 @@ def dbView(dbName):
 def colView(dbName, colName):
 	db = mongo[dbName]
 	col = db[colName]
-	return render_template('colView.html',dbName=dbName,colName=colName)
+	count = col.count()
+	return render_template('colView.html',dbName=dbName,colName=colName,count=count)
 
 @app.route('/ajax/getkeystats/')
 def getKeyStats():
