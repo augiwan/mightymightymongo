@@ -7,6 +7,7 @@ import unicodedata
 mongo = Connection()
 from bson.json_util import dumps
 from json import loads
+import os
 
 @app.route('/')
 def home():
@@ -61,15 +62,10 @@ def loadDocument():
 	
 	return Response(jsonStr, mimetype='application/json')
 
-def makeKeysStats(col):
-	"returns stats about each key"
-	stats = {}
-	for doc in col.find(limit=100):
-		keys = getKeys(doc)
-		addToKeyCount(stats, keys)
-	ret = {}
-	return stats
-
+def makeKeyStats(db,col):
+	output = os.popen('''mongo %s --eval "var collection = '%s', limit = 1" variety-master/variety.js''' % (db, col) ).read()
+	output = output.split('\n')
+	output = output[10:-1] # first ten lines are just printouts, the last is an empty string
 	
 def addToKeyCount(stats, keys):
 	for key in keys:
