@@ -14,13 +14,13 @@
 	var dbName = "{{dbName}}"
 	var colName = "{{colName}}"
 	</script>
-	
 </head>
 
 <body style="padding:20px;">
-<div id="breadCrumbPath"><h2>Home -> TWC -> Users</h2></div>
+<div id="breadCrumbPath"><h2><a href='/'>Home</a> -> <a href='/db/{{dbName}}'>{{dbName}}</a> -> {{colName}}</h2></div>
 <div style="font-size:30px;height:35px;margin-top:10px;margin-left:15px;">{{count}} total entries</div>
-<div id="schema">
+
+<div id="schema" style="float:left;width:50%">
 	<ul>
 	<li>Name {dictionary}
 		<ul>
@@ -31,15 +31,24 @@
 	<li>Age {int}</li>
 	</ul>
 </div> <!--Schema div -->
-<button onclick="javascript:loadSchema()">Get Schema</button>
 
-<div style="margin-bottom:20px;" id="queryDiv">
+<span id="fieldInfo" style="float:left;">
+<h2>Field Info</h2>
+	<div id="fieldList"></div>
+</span> <!--fieldInfo-->
+
+<div style="width:100%;clear:both;"></div>
+<button onclick="javascript:loadSchema()">Get Schema</button>
+<div style="margin-bottom:20px;" id="queryDiv" style="clear:both";></div>
+
+
+
 <h2>Query Div</h2>
 	<button onclick="javascript:appendCriteriaField()">Add Field</button>
 	<!--appendCriteriaField dynamically puts fields here -->
 </div> <!--queryDiv-->
-<div><input type="text" id="fields2Show" placeholder="Fields To Show"></div>
 <button onclick="javascript:query()">Search</button>
+<div id="queryCount"></div>
 <div id="resultsDiv">
 	<!--results will be placed here by javascript
 </div> <!--resultsDiv-->

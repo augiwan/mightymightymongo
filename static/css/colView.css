@@ -13,3 +13,9 @@ input, select{
 .oneAttr{
 	margin-left:30px;
 }
+
+.oneKeyContainer:hover {
+    color:blue;
+    cursor: pointer; 
+    cursor: hand;
+}

@@ -3,21 +3,23 @@ function appendCriteriaField(){
 	var newCrit = $('<div>',{'class':"oneCrit"})
 	var field = $('<input>',{'type':'text', 'class':'field', 'placeholder':'field','onchange':"queryChange(this)"})
 	
+	
+	
 	var select = $('<select>', {'class':'operation', 'onchange':"queryChange(this)"})
-	var ops = ["$eq","$gt","$gte","$lt","lte"]
+	var ops = ["$eq","$gt","$gte","$lt","$lte","$exists"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
 	var value = $("<input>",{'type':'text','class':'value','placeholder':'value', 'onchange':"queryChange(this)"})
+	$(value).keyup(formatValue)
 	
-	var changeValType = $("<a>", {'href':'javascript:changeValueType()','html':'Change Type'})
 
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
+	
 	
 	$(newCrit).append(field)
 	$(newCrit).append(select)
 	$(newCrit).append(value)
 	//$(newCrit).append(valueBool)
-	$(newCrit).append(changeValType)
 	$(newCrit).append(removeIcon)
 	$("#queryDiv").append(newCrit)
 }
@@ -36,14 +38,32 @@ function queryChange(self){
 	
 }
 
+//use for automatically converting types for query and syntax hilighting
+var regBool = new RegExp(/^(False|True)$/)
+var regStr = new RegExp(/^".*"$/)
+var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
+var regNone = new RegExp(/^None$/)
+
+
 function query(){
+	console.log("querying")
 	var crits = $('#queryDiv').children('.oneCrit')
 	var queryDic = {}
 	for(var i=0;i<crits.length;i++){
 		var curCrit = crits[i];
-		var field = $(curCrit).data('field')
-		var operation = $(curCrit).data('operation')
-		var value = $(curCrit).data('value')
+		var field = $(curCrit).attr('data-field')
+		if(field == '' || field==undefined) // ignore if the field is blank
+			continue
+		var operation = $(curCrit).attr('data-operation')
+		var value = $(curCrit).attr('data-value')
+		//handle type converstion
+		if(regBool.test(value)){
+			if(value == "True")
+				value = true
+			else //it's false
+				value = false
+		}
+		
 		if(operation == '$eq')
 			queryDic[field] = value
 		else{
@@ -61,13 +81,13 @@ function query(){
 }
 
 function queryReceived(data){
+	$('#queryCount').html('Total Results: ' + data['count'])
 	var results = data['results']
+	$(resultsDiv).html('')
 	for(var i=0;i<results.length;i++){
 		var resultContainer = $('<div>', {'class':'resultContainer'})
 		$(resultContainer).attr('data-loaded', false) //has the expanded doc been loaded yet?
 		$(resultContainer).attr('data-expaned', false) //is the div currently expaned
-		
-		
 		
 		var divSummary = $('<div>', {'class':'resultSummary'})
 		
@@ -135,9 +155,64 @@ function loadSchema(){
 		for(i=0;i<schema.length;i++){
 			var curKey = schema[i]
 			var newDiv = $("<div>", {'class':'oneKeyContainer'})
+			$(newDiv).attr('data-field', curKey['_id']['key'])
+			$(newDiv).click( function(){loadDistinctVals(this)})
 			newDiv.append(curKey['_id']['key']+': ' + curKey['percentContaining']+"% (" + curKey['value']['type'] + ")") 
 			$(schemaDiv).append(newDiv)
 		}
 	
+	}
+}
+
+//used to format the text fields for values depending the type of value (Boolean, String, etc)
+function formatValue(event){
+	var input = event.target
+	var val = $(input).val()
+	val = $.trim(val) //removing spaces on the ends
+	if(regBool.test(val)){
+		$(input).css('color','orange')
+		$(input).css('font-weight', 'bold')
+	}
+	else if(regStr.test(val)){
+		$(input).css('color','blue')
+		$(input).css('font-weight', 'bold')
+	}
+	else if(regNum.test(val)){
+		$(input).css('color','red')
+		$(input).css('font-weight', 'bold')
+	}
+	else if(regNone.test(val)){
+		$(input).css('color', 'brown')
+		$(input).css('font-weight','bold')
+	}
+	else{
+		$(input).css('color','black')
+		$(input).css('font-weight','normal')
+		
+		
+		$(input).css({outline: none;
+    border-color: #9ecaed;
+    box-shadow: 0 0 10px #9ecaed;
+	})
+		
+}
+
+//takes in a field value and retrieves the unique values for that field
+function loadDistinctVals(field){
+	data = {}
+	data['dbName'] = dbName
+	data['colName'] = colName
+	data['field'] = $(field).attr('data-field')
+	$.ajax({url:'/ajax/loadDistinctVals', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:valsReceived})
+	
+	function valsReceived(data){
+		var fieldList = $('#fieldList')
+		$(fieldList).html("")
+		var vals = data['vals']
+		for(var i=0;i<vals.length;i++){
+			var newDiv = $('<div>')
+			newDiv.append(vals[i])
+			$(fieldList).append(newDiv)
+		}
 	}
 }

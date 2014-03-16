@@ -36,6 +36,7 @@ def getKeyStats():
 
 @app.route('/ajax/query', methods=['GET','POST'])
 def query():
+	print "running"
 	data = request.json
 	print "received " + str(data)
 	dbName = data['dbName']
@@ -44,9 +45,10 @@ def query():
 	queryCrit = data['query']
 	
 	selectFields = {'_id':1} #which fields are sent to display
-	#query = collection.find(queryCrit, selectFields)
-	query = collection.find({'email':'jacobgheller@gmail.com'}, selectFields)
-	jsonStr = dumps({'results':query}) #converts cursor to jsonified string
+	query = collection.find(queryCrit, selectFields)
+	#query = collection.find({'email':{'$in':['jacobgheller@gmail.com','jacob@thewelcomingcommittee.com','danielgheller@gmail.com']}}, selectFields)
+	print query.count()
+	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	
 
@@ -62,6 +64,16 @@ def loadDocument():
 	jsonStr = dumps({'doc':query}) #convert result to jsonified string
 	
 	return Response(jsonStr, mimetype='application/json')
+
+@app.route('/ajax/loadDistinctVals', methods=['GET','POST'])
+def loadDistinctVals():
+	data = request.json
+	dbName = data['dbName']
+	colName = data['colName']
+	field = request.json['field']
+	vals = mongo[dbName][colName].find().distinct(field)
+	return Response(dumps({'vals':vals}), mimetype='application/json')
+	
 
 @app.route('/ajax/getschema', methods=['GET','POST'])
 def getKeyStats():
