@@ -1,3 +1,20 @@
+//use for automatically converting types for query and syntax hilighting
+
+
+var regBool = new RegExp(/^(False|True)$/)
+var formatBool = {'color':'orange','font-weight':'bold'}
+var regStr = new RegExp(/^".*"$/)
+var formatStr = {'color':'blue', 'font-weight':'bold'}
+var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
+var formatNum = {'color':'red','font-weight':'bold'}
+var regNone = new RegExp(/^None$/)
+var formatNone = {'color':'brown','font-weight':'bold'}
+var formatUnknown = {'background':'#FF8D8D'}
+formats = []
+formats.push([regBool,formatBool],[regStr,formatStr],[regNum,formatNum],[regNone,formatNone],formatUnknown)
+
+
+
 
 function appendCriteriaField(){
 	var newCrit = $('<div>',{'class':"oneCrit"})
@@ -38,11 +55,7 @@ function queryChange(self){
 	
 }
 
-//use for automatically converting types for query and syntax hilighting
-var regBool = new RegExp(/^(False|True)$/)
-var regStr = new RegExp(/^".*"$/)
-var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
-var regNone = new RegExp(/^None$/)
+
 
 
 function query(){
@@ -169,34 +182,27 @@ function formatValue(event){
 	var input = event.target
 	var val = $(input).val()
 	val = $.trim(val) //removing spaces on the ends
-	if(regBool.test(val)){
-		$(input).css('color','orange')
-		$(input).css('font-weight', 'bold')
+	$(input).css({'background':'white','font-weight':'normal'})
+	var recognized = false
+	for(var i=0;i<formats.length-1;i++){ //last element is the default, hence the -1
+		var rule = formats[i][0]
+		var css = formats[i][1]
+		if(rule.test(val)){
+			recognized = true
+			$(input).css(css)
+		}
 	}
-	else if(regStr.test(val)){
-		$(input).css('color','blue')
-		$(input).css('font-weight', 'bold')
+	if(!recognized){
+			$(input).css(formats[formats.length-1])
 	}
-	else if(regNum.test(val)){
-		$(input).css('color','red')
-		$(input).css('font-weight', 'bold')
-	}
-	else if(regNone.test(val)){
-		$(input).css('color', 'brown')
-		$(input).css('font-weight','bold')
-	}
-	else{
-		$(input).css('color','black')
-		$(input).css('font-weight','normal')
-		
-		
-		$(input).css({outline: none;
-    border-color: #9ecaed;
-    box-shadow: 0 0 10px #9ecaed;
-	})
-		
 }
 
+//same as format value, but takes in a div with the value of interest in the HTML
+function formatValueDiv(div){
+	event = {}
+	event.target = div
+	formatValue(event)
+}
 //takes in a field value and retrieves the unique values for that field
 function loadDistinctVals(field){
 	data = {}
@@ -212,6 +218,8 @@ function loadDistinctVals(field){
 		for(var i=0;i<vals.length;i++){
 			var newDiv = $('<div>')
 			newDiv.append(vals[i])
+			formatValueDiv(newDiv)
+			console.log(vals[i])
 			$(fieldList).append(newDiv)
 		}
 	}
