@@ -25,15 +25,15 @@ def colView(dbName, colName):
 	db = mongo[dbName]
 	col = db[colName]
 	count = col.count()
-	return render_template('colView.html',dbName=dbName,colName=colName,count=count)
-
-@app.route('/ajax/getkeystats/')
-def getKeyStats():
-	dbName = request.args.get("dbName");
-	colName = request.args.get("colName");
-	collection = mongo[dbName][colName]
-	stats = makeKeysStats(collection)
-	return jsonify({"stats":stats})
+	
+	variety = mongo['varietyResults']
+	if (colName+'Keys') in variety.collection_names(): #see if keys have been created
+		colSchema = variety[colName+'Keys']
+		schema = [doc for doc in colSchema.find()]
+	else:
+		schema = None
+		print "collection doesn't exist"
+	return render_template('colView.html',dbName=dbName,colName=colName,count=count, schema=schema)
 
 @app.route('/ajax/query', methods=['GET','POST'])
 def query():
@@ -58,7 +58,12 @@ def loadDocument():
 	dbName = data['dbName']
 	colName = data['colName']
 	collection = mongo[dbName][colName]
-	objID = ObjectId(data['objID'])
+	#objID = ObjectId(data['objID'])
+	id = data['objID']
+	if type(id) == type({}) and '$oid' in id: #special case if it's an objectID
+		objID = ObjectId(data['objID']['$oid'])
+	else:
+		objID = data['objID']
 	
 	query = collection.find_one({'_id':objID})
 	jsonStr = dumps({'doc':query}) #convert result to jsonified string
@@ -66,12 +71,20 @@ def loadDocument():
 
 @app.route('/ajax/loadDistinctVals', methods=['GET','POST'])
 def loadDistinctVals():
+	limit = 50 #if we get more than this returned, don't print them
 	data = request.json
 	dbName = data['dbName']
 	colName = data['colName']
 	field = request.json['field']
 	vals = mongo[dbName][colName].find().distinct(field)
-	return Response(dumps({'vals':vals}), mimetype='application/json')
+	data = {}
+	if len(vals) > limit:
+		data['status'] = 'tooMany'
+		data['limit'] = limit
+	else:
+		data['status'] = 'ok'
+		data['vals'] = vals
+	return Response(dumps(data), mimetype='application/json')
 	
 
 @app.route('/ajax/getschema', methods=['GET','POST'])

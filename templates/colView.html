@@ -9,7 +9,10 @@
 	<script>
 	"use strict"
 	//$(document).bind('keydown', 'ctrl+a', changeValueType);
-	$(document).ready(function(){appendCriteriaField()})
+	$(document).ready(function(){
+		appendCriteriaField()
+		$(".oneKeyContainer").click(loadDistinctVals)
+	})
 	
 	var dbName = "{{dbName}}"
 	var colName = "{{colName}}"
@@ -22,13 +25,10 @@
 
 <div id="schema" style="float:left;width:50%">
 	<ul>
-	<li>Name {dictionary}
-		<ul>
-		<li>FirstName {string}</li>
-		<li>LastName {string}</li>
-		</ul>		
-	</li>
-	<li>Age {int}</li>
+	{% for key in schema %}
+	<li class="oneKeyContainer data-field={{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
+	
+	{% endfor %}
 	</ul>
 </div> <!--Schema div -->
 

@@ -48,7 +48,7 @@ function appendCriteriaField(){
 
 
 
-function queryChange(this){
+function queryChange(self){
 	var oneCrit = $(self).parent()
 	var field = $(oneCrit).children('.field')[0]
 	var operation = $(oneCrit).children('.operation')[0]
@@ -115,13 +115,11 @@ function queryReceived(data){
 		$(divSummary).append(img)
 		$(divSummary).append('{')
 		for(var j in doc){
+			$(divSummary).append(j+':'+JSON.stringify(doc[j]))
 			if(j=='_id'){
-				var id = doc[j]['$oid']
-				$(divSummary).append(j+':'+id)
-				$(resultContainer).attr('data-_id',id)
+				$(resultContainer).attr('data-_id',JSON.stringify(doc[j]))
 			}
-			else
-				$(divSummary).append(j+':'+doc[j])
+				
 		}
 		$(divSummary).append('}')
 		
@@ -214,16 +212,21 @@ function formatValueDiv(div){
 	}
 }
 //takes in a field value and retrieves the unique values for that field
-function loadDistinctVals(field){
+function loadDistinctVals(event){
 	data = {}
+	var field = $(event.target).attr('data-field')
 	data['dbName'] = dbName
 	data['colName'] = colName
-	data['field'] = $(field).attr('data-field')
+	data['field'] = field
 	$.ajax({url:'/ajax/loadDistinctVals', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:valsReceived})
 	
 	function valsReceived(data){
 		var fieldList = $('#fieldlist')
-		$(fieldList).html("")
+		$(fieldList).html(field)
+		if(data['status'] == 'tooMany'){
+			$(fieldList).append("<h2>Error more than "+data['limit']+" distinct values found.</h2>")
+			return
+		}
 		var vals = data['vals']
 		for(var i=0;i<vals.length;i++){
 			var newDiv = $('<div>')
