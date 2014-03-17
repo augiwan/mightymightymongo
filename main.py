@@ -8,6 +8,7 @@ mongo = Connection()
 from bson.json_util import dumps
 from json import loads
 import os
+from pdb import set_trace
 
 @app.route('/')
 def home():
@@ -47,7 +48,6 @@ def query():
 	selectFields = {'_id':1} #which fields are sent to display
 	query = collection.find(queryCrit, selectFields)
 	#query = collection.find({'email':{'$in':['jacobgheller@gmail.com','jacob@thewelcomingcommittee.com','danielgheller@gmail.com']}}, selectFields)
-	print query.count()
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	
@@ -62,7 +62,6 @@ def loadDocument():
 	
 	query = collection.find_one({'_id':objID})
 	jsonStr = dumps({'doc':query}) #convert result to jsonified string
-	
 	return Response(jsonStr, mimetype='application/json')
 
 @app.route('/ajax/loadDistinctVals', methods=['GET','POST'])

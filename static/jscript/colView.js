@@ -1,17 +1,22 @@
 //use for automatically converting types for query and syntax hilighting
-
-
-var regBool = new RegExp(/^(False|True)$/)
+formats = {}
+var regBool = new RegExp(/^(false|true)$/)
 var formatBool = {'color':'orange','font-weight':'bold'}
+formats['boolean'] = [regBool, formatBool]
+
 var regStr = new RegExp(/^".*"$/)
 var formatStr = {'color':'blue', 'font-weight':'bold'}
+formats['string'] = [regStr, formatStr]
+
 var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
 var formatNum = {'color':'red','font-weight':'bold'}
-var regNone = new RegExp(/^None$/)
+formats['number'] = [regNum, formatNum]
+var regNone = new RegExp(/^null$/)
 var formatNone = {'color':'brown','font-weight':'bold'}
+formats['null'] = [regNone, formatNone]
+
 var formatUnknown = {'background':'#FF8D8D'}
-formats = []
-formats.push([regBool,formatBool],[regStr,formatStr],[regNum,formatNum],[regNone,formatNone],formatUnknown)
+//formats['unknown'] = [null, formatUnknown]
 
 
 
@@ -26,8 +31,8 @@ function appendCriteriaField(){
 	var ops = ["$eq","$gt","$gte","$lt","$lte","$exists"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
-	var value = $("<input>",{'type':'text','class':'value','placeholder':'value', 'onchange':"queryChange(this)"})
-	$(value).keyup(formatValue)
+	var value = $("<input>",{'type':'text','class':'value','placeholder':'value', 'onchange':"queryChange(self)"})
+	$(value).keyup(formatValueDiv)
 	
 
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
@@ -43,7 +48,7 @@ function appendCriteriaField(){
 
 
 
-function queryChange(self){
+function queryChange(this){
 	var oneCrit = $(self).parent()
 	var field = $(oneCrit).children('.field')[0]
 	var operation = $(oneCrit).children('.operation')[0]
@@ -52,6 +57,7 @@ function queryChange(self){
 	oneCrit.attr('data-field',$(field).val())
 	oneCrit.attr('data-operation',$(operation).val())
 	oneCrit.attr('data-value',$(value).val())
+	console.log('change')
 	
 }
 
@@ -147,7 +153,13 @@ function loadDoc(div){
 		var serialized = serializeDoc(data['doc'])
 		for(var i in serialized){
 			console.log(i+':'+serialized[i])
-			$(expand).append("<div class='oneAttr'> "+i+": "+serialized[i]+"</div>")
+			var newDiv = $("<div>", {'class':'oneAttr'})
+			$(newDiv).append(i+': ')
+			var val = $("<span>")
+			$(val).append(JSON.stringify(serialized[i]))
+			formatValueDiv(val)
+			$(newDiv).append(val)
+			$(expand).append(newDiv)
 		}
 	}
 	
@@ -180,28 +192,26 @@ function loadSchema(){
 //used to format the text fields for values depending the type of value (Boolean, String, etc)
 function formatValue(event){
 	var input = event.target
-	var val = $(input).val()
-	val = $.trim(val) //removing spaces on the ends
-	$(input).css({'background':'white','font-weight':'normal'})
+	
+}
+
+//takes in a DIV containing a value and styles it according to it's type
+function formatValueDiv(div){
+	var val = $(div).html()
+	val = $.trim(val) //removing spaces on the ends, convert to JSON format
+	//$(input).css({'background':'white','font-weight':'normal'})
 	var recognized = false
-	for(var i=0;i<formats.length-1;i++){ //last element is the default, hence the -1
+	for(var i in formats){
 		var rule = formats[i][0]
 		var css = formats[i][1]
 		if(rule.test(val)){
 			recognized = true
-			$(input).css(css)
+			$(div).css(css)
 		}
 	}
 	if(!recognized){
-			$(input).css(formats[formats.length-1])
+			$(div).css(formatUnknown)
 	}
-}
-
-//same as format value, but takes in a div with the value of interest in the HTML
-function formatValueDiv(div){
-	event = {}
-	event.target = div
-	formatValue(event)
 }
 //takes in a field value and retrieves the unique values for that field
 function loadDistinctVals(field){
@@ -212,12 +222,12 @@ function loadDistinctVals(field){
 	$.ajax({url:'/ajax/loadDistinctVals', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:valsReceived})
 	
 	function valsReceived(data){
-		var fieldList = $('#fieldList')
+		var fieldList = $('#fieldlist')
 		$(fieldList).html("")
 		var vals = data['vals']
 		for(var i=0;i<vals.length;i++){
 			var newDiv = $('<div>')
-			newDiv.append(vals[i])
+			newDiv.append(JSON.stringify(vals[i]))
 			formatValueDiv(newDiv)
 			console.log(vals[i])
 			$(fieldList).append(newDiv)
