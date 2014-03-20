@@ -1,0 +1,19 @@
+.boolType{
+	color:orange;
+	font-weight:bold;
+}
+
+.stringType{
+	color:blue;
+	font-weight:bold;
+}
+
+.noneType{
+	color:brown;
+	font-weight:bold;
+}
+
+.numType{
+	color:red;
+	font-weight:bold
+}
