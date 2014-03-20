@@ -1,22 +1,14 @@
 //use for automatically converting types for query and syntax hilighting
-formats = {}
 var regBool = new RegExp(/^(false|true)$/)
-var formatBool = {'color':'orange','font-weight':'bold'}
-formats['boolean'] = [regBool, formatBool]
-
 var regStr = new RegExp(/^".*"$/)
-var formatStr = {'color':'blue', 'font-weight':'bold'}
-formats['string'] = [regStr, formatStr]
-
 var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
-var formatNum = {'color':'red','font-weight':'bold'}
-formats['number'] = [regNum, formatNum]
 var regNone = new RegExp(/^null$/)
-var formatNone = {'color':'brown','font-weight':'bold'}
-formats['null'] = [regNone, formatNone]
 
-var formatUnknown = {'background':'#FF8D8D'}
-//formats['unknown'] = [null, formatUnknown]
+var formats = {'boolType':regBool,
+'stringType':regStr,
+'numType':regNum,
+'noneType':regNone,
+}
 
 
 
@@ -31,8 +23,8 @@ function appendCriteriaField(){
 	var ops = ["$eq","$gt","$gte","$lt","$lte","$exists"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
-	var value = $("<input>",{'type':'text','class':'value','placeholder':'value', 'onchange':"queryChange(self)"})
-	$(value).keyup(formatValueDiv)
+	var value = $("<input>",{'type':'text','class':'value','placeholder':'value'})
+	$(value).keyup(function(self){formatValueDiv(self.target)})
 	
 
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
@@ -49,6 +41,7 @@ function appendCriteriaField(){
 
 
 function queryChange(self){
+	console.log("change")
 	var oneCrit = $(self).parent()
 	var field = $(oneCrit).children('.field')[0]
 	var operation = $(oneCrit).children('.operation')[0]
@@ -57,7 +50,6 @@ function queryChange(self){
 	oneCrit.attr('data-field',$(field).val())
 	oneCrit.attr('data-operation',$(operation).val())
 	oneCrit.attr('data-value',$(value).val())
-	console.log('change')
 	
 }
 
@@ -195,20 +187,15 @@ function formatValue(event){
 
 //takes in a DIV containing a value and styles it according to it's type
 function formatValueDiv(div){
+	console.log('change')
 	var val = $(div).html()
-	val = $.trim(val) //removing spaces on the ends, convert to JSON format
-	//$(input).css({'background':'white','font-weight':'normal'})
-	var recognized = false
+	if(val == "")
+		val = $(div).val() //handle inputs as well, not just divs
+	val = $.trim(val) //removing spaces on the ends
+	$(div).attr('class','')
 	for(var i in formats){
-		var rule = formats[i][0]
-		var css = formats[i][1]
-		if(rule.test(val)){
-			recognized = true
-			$(div).css(css)
-		}
-	}
-	if(!recognized){
-			$(div).css(formatUnknown)
+		if(formats[i].test(val))
+			$(div).attr('class',i)
 	}
 }
 //takes in a field value and retrieves the unique values for that field

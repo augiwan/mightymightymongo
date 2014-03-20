@@ -1,6 +1,7 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/types.css">
 	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
 	<script src="/static/jscript/colView.js"></script>
 	<script src="/static/jscript/printDocument.js"></script>
@@ -26,7 +27,7 @@
 <div id="schema" style="float:left;width:50%">
 	<ul>
 	{% for key in schema %}
-	<li class="oneKeyContainer data-field={{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
+	<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
 	
 	{% endfor %}
 	</ul>
