@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 app = Flask(__name__)
 import unicodedata
 mongo = Connection()
-from bson.json_util import dumps
+from bson.json_util import dumps, loads
 from json import loads
 import os
 from pdb import set_trace
@@ -45,9 +45,12 @@ def query():
 	collection = mongo[dbName][colName]
 	queryCrit = data['query']
 	
+	#if 'lastID' in queryCrit: #if we're paging
+	#	queryCrit['_id'] = {'$gt':loads(
+	
 	selectFields = {'_id':1} #which fields are sent to display
-	query = collection.find(queryCrit, selectFields)
-	#query = collection.find({'email':{'$in':['jacobgheller@gmail.com','jacob@thewelcomingcommittee.com','danielgheller@gmail.com']}}, selectFields)
+	query = collection.find(queryCrit, selectFields).limit(10)
+	query.sort("_id",1) #for now, sort by _id so we can page, sorting feature will come later
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 	

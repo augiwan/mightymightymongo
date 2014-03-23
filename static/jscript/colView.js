@@ -4,12 +4,15 @@ var regStr = new RegExp(/^".*"$/)
 var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
 var regNone = new RegExp(/^null$/)
 
-var formats = {'boolType':regBool,
-'stringType':regStr,
-'numType':regNum,
-'noneType':regNone,
+
+//format is <className>:[<regex>,<conversion function for JSON>]
+var formats = {'boolType':[regBool, function(val){if (val=="false") return false; else return true}],
+'stringType':[regStr, function(val){return val.substring(1,val.length-1)}],
+'numType':[regNum, function(val){return Number(val)}],
+'noneType':[regNone, function(val){return null}],
 }
 
+//keep track of the first and last objID currently displayed so we can do paging
 
 
 
@@ -24,7 +27,7 @@ function appendCriteriaField(){
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
 	var value = $("<input>",{'type':'text','class':'value','placeholder':'value'})
-	$(value).keyup(function(self){formatValueDiv(self.target)})
+	$(value).keyup(function(self){formatValueDiv(self.target);queryChange(self.target)})
 	
 
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
@@ -67,12 +70,11 @@ function query(){
 			continue
 		var operation = $(curCrit).attr('data-operation')
 		var value = $(curCrit).attr('data-value')
-		//handle type converstion
-		if(regBool.test(value)){
-			if(value == "True")
-				value = true
-			else //it's false
-				value = false
+		for(i in formats){
+			var regex = formats[i][0]
+			var conversion = formats[i][1]
+			if(regex.test(value))
+				value = conversion(value)
 		}
 		
 		if(operation == '$eq')
@@ -88,6 +90,8 @@ function query(){
 	data['dbName'] = dbName
 	data['colName'] = colName
 	data['query'] = queryDic
+	//if(lastID) //if this is loading the next page of a current query
+	//	data['lastID'] = lastID
 	$.ajax({url:'/ajax/query', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:queryReceived})
 }
 
@@ -110,17 +114,17 @@ function queryReceived(data){
 			$(divSummary).append(j+':'+JSON.stringify(doc[j]))
 			if(j=='_id'){
 				$(resultContainer).attr('data-_id',JSON.stringify(doc[j]))
-			}
-				
+			}		
 		}
 		$(divSummary).append('}')
-		
 		var expanded = $('<div>', {'class':'resultExpanded','style':'display:none'})
 		
 		$(resultContainer).append(divSummary)
 		$(resultContainer).append(expanded)
 		$(resultsDiv).append(resultContainer)
-	}	
+	}
+	$(resultsDiv).attr('data-firstID', results[0]['_id'])
+	$(resultsDiv).attr('data-lastID', results[results.length-1]['_id'])
 }
 
 function toggleExpanded(div){
@@ -192,10 +196,10 @@ function formatValueDiv(div){
 	if(val == "")
 		val = $(div).val() //handle inputs as well, not just divs
 	val = $.trim(val) //removing spaces on the ends
-	$(div).attr('class','')
+	$(div).removeClass(Object.keys(formats).join(' '))
 	for(var i in formats){
-		if(formats[i].test(val))
-			$(div).attr('class',i)
+		if(formats[i][0].test(val))
+			$(div).addClass(i)
 	}
 }
 //takes in a field value and retrieves the unique values for that field

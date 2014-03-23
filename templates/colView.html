@@ -25,12 +25,17 @@
 <div style="font-size:30px;height:35px;margin-top:10px;margin-left:15px;">{{count}} total entries</div>
 
 <div id="schema" style="float:left;width:50%">
-	<ul>
-	{% for key in schema %}
-	<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
 	
-	{% endfor %}
-	</ul>
+	{% if schema == None %}
+		No Schema Created
+	{% else %}
+		<ul>
+		{% for key in schema %}
+		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
+	
+		{% endfor %}
+		</ul>
+	{% endif %}
 </div> <!--Schema div -->
 
 <span id="fieldInfo" style="float:left;">
@@ -53,4 +58,5 @@
 <div id="resultsDiv">
 	<!--results will be placed here by javascript
 </div> <!--resultsDiv-->
+<a>Previous</a> <a>Next</a>
 </body>
