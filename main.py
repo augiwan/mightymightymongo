@@ -30,11 +30,28 @@ def colView(dbName, colName):
 	if (colName+'Keys') in variety.collection_names(): #see if keys have been created
 		colSchema = variety[colName+'Keys']
 		schema = [doc for doc in colSchema.find()]
+		schema.sort(key=lambda x: x['_id']['key'])
 	else:
 		schema = None
 		print "collection doesn't exist"
 	return render_template('colView.html',dbName=dbName,colName=colName,count=count, schema=schema)
 
+@app.route('/ajax/getKeysList', methods=['POST','GET'])
+def getKeysList():
+	'''takes in a dbName and colName and returns a JSON list of all the keys in that table in a the "keys" field.  Returns None if the field has not been created by variety'''
+	data = request.json
+	db = data['dbName']
+	col = data['colName']
+	keys = None
+	variety = mongo['varietyResults']
+	if (col+'Keys') in variety.collection_names(): #see if keys have been created
+		colSchema = variety[col+'Keys']
+		keys = [doc['_id']['key'] for doc in colSchema.find()]
+	return jsonify({'keys':keys})
+	
+		
+		
+	
 @app.route('/ajax/query', methods=['GET','POST'])
 def query():
 	print "running"
@@ -45,15 +62,24 @@ def query():
 	collection = mongo[dbName][colName]
 	queryCrit = data['query']
 	
-	#if 'lastID' in queryCrit: #if we're paging
-	#	queryCrit['_id'] = {'$gt':loads(
-	
 	selectFields = {'_id':1} #which fields are sent to display
-	query = collection.find(queryCrit, selectFields).limit(10)
+	
+	lastID = convertIfObjID(data['lastID'])
+	limit = data['limit'] #limit the number returned
+	if(lastID != None):
+		queryCrit['_id'] = {'$gt':lastID}
+	#set_trace()
+	query = collection.find(queryCrit, selectFields).limit(limit)
 	query.sort("_id",1) #for now, sort by _id so we can page, sorting feature will come later
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
+
 	
+def convertIfObjID(thing):
+	'''takes in an argument and returns it as an objectID if it is the JSON representation of one.  Otherwise it returns the exact same thing'''
+	if type(thing) == type({}) and '$oid' in thing: #handle objectID type
+		return ObjectId(thing['$oid'])
+	return thing
 
 @app.route('/ajax/loadDocument', methods=['GET','POST'])
 def loadDocument():

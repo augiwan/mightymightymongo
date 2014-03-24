@@ -1,7 +1,7 @@
 //use for automatically converting types for query and syntax hilighting
 var regBool = new RegExp(/^(false|true)$/)
 var regStr = new RegExp(/^".*"$/)
-var regNum = new RegExp(/^[1-9]\d*(\.\d+)?$/)
+var regNum = new RegExp(/^[0-9]\d*(\.\d+)?$/)
 var regNone = new RegExp(/^null$/)
 
 
@@ -13,12 +13,19 @@ var formats = {'boolType':[regBool, function(val){if (val=="false") return false
 }
 
 //keep track of the first and last objID currently displayed so we can do paging
-
+var lastID = null
+var firstID = null
 
 
 function appendCriteriaField(){
 	var newCrit = $('<div>',{'class':"oneCrit"})
 	var field = $('<input>',{'type':'text', 'class':'field', 'placeholder':'field','onchange':"queryChange(this)"})
+	
+	if(dbKeys){ //only add autocomplete if the keys have been scanned
+		$(field).autocomplete({'source':dbKeys,'minLength':0}).focus(function () {
+		$(this).autocomplete("search"); //makes the autocomplete show immediately on focus
+});
+	}
 	
 	
 	
@@ -58,10 +65,11 @@ function queryChange(self){
 
 
 
-
-function query(){
+//if useLastID is true, then it the next query will start from the next ID to create a paging functionality
+function query(useLastID){
 	console.log("querying")
 	var crits = $('#queryDiv').children('.oneCrit')
+	var resultsDiv = $("#resultsDiv")
 	var queryDic = {}
 	for(var i=0;i<crits.length;i++){
 		var curCrit = crits[i];
@@ -90,14 +98,18 @@ function query(){
 	data['dbName'] = dbName
 	data['colName'] = colName
 	data['query'] = queryDic
-	//if(lastID) //if this is loading the next page of a current query
-	//	data['lastID'] = lastID
+	data['limit'] = 10 //limit number of results returned
+	if(useLastID)
+		data['lastID'] = lastID
+	else
+		data['lastID'] = null
 	$.ajax({url:'/ajax/query', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:queryReceived})
 }
 
 function queryReceived(data){
 	$('#queryCount').html('Total Results: ' + data['count'])
 	var results = data['results']
+	var resultsDiv = $("#resultsDiv")
 	$(resultsDiv).html('')
 	for(var i=0;i<results.length;i++){
 		var resultContainer = $('<div>', {'class':'resultContainer'})
@@ -123,8 +135,13 @@ function queryReceived(data){
 		$(resultContainer).append(expanded)
 		$(resultsDiv).append(resultContainer)
 	}
-	$(resultsDiv).attr('data-firstID', results[0]['_id'])
-	$(resultsDiv).attr('data-lastID', results[results.length-1]['_id'])
+	firstID = results[0]['_id']
+	lastID = results[results.length-1]['_id']
+}
+
+//loads the next page of the query
+function nextPage(){
+	
 }
 
 function toggleExpanded(div){
@@ -226,5 +243,19 @@ function loadDistinctVals(event){
 			console.log(vals[i])
 			$(fieldList).append(newDiv)
 		}
+	}
+}
+
+function toggleSchemaExpand(){
+	var schema = $("#schema")
+	var curHeight = schema.height(),
+    autoHeight = schema.css('height', 'auto').height();
+	if(schema.data('expanded')){
+		schema.animate({'height':'100px'},1000)
+		schema.data('expanded',false)
+	}
+	else{
+		schema.height(curHeight).animate({height: autoHeight}, 1000);
+		schema.data('expanded',true)
 	}
 }

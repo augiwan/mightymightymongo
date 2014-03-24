@@ -19,3 +19,8 @@ input, select{
     cursor: pointer; 
     cursor: hand;
 }
+
+a{
+	cursor:pointer;
+	cursor:hand;
+}

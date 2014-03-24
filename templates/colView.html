@@ -3,20 +3,32 @@
 	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/types.css">
 	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
+	
+	<link rel="stylesheet" href="/static/jquery-ui-1.10.4.custom/css/ui-lightness/jquery-ui-1.10.4.custom.css" />
+	<script src="/static/jquery-ui-1.10.4.custom/js/jquery-ui-1.10.4.custom.js"></script>
+	
 	<script src="/static/jscript/colView.js"></script>
 	<script src="/static/jscript/printDocument.js"></script>
-	<script src="/static/jscript/jquery.hotkeys.js"></script>
+	
+	
+	
 	
 	<script>
-	"use strict"
 	//$(document).bind('keydown', 'ctrl+a', changeValueType);
 	$(document).ready(function(){
-		appendCriteriaField()
+		
 		$(".oneKeyContainer").click(loadDistinctVals)
-	})
 	
-	var dbName = "{{dbName}}"
-	var colName = "{{colName}}"
+	dbName = "{{dbName}}"
+	colName = "{{colName}}"
+	dbKeys = null
+	$.ajax({url:'/ajax/getKeysList', type:'POST', data:JSON.stringify({'colName':colName,'dbName':dbName}), contentType:'application/json', 
+	success:function(data){
+		dbKeys = data['keys']
+		appendCriteriaField()
+	}})
+	
+	})
 	</script>
 </head>
 
@@ -24,19 +36,22 @@
 <div id="breadCrumbPath"><h2><a href='/'>Home</a> -> <a href='/db/{{dbName}}'>{{dbName}}</a> -> {{colName}}</h2></div>
 <div style="font-size:30px;height:35px;margin-top:10px;margin-left:15px;">{{count}} total entries</div>
 
-<div id="schema" style="float:left;width:50%">
+<div id="schema" style="float:left;width:50%;height:100px;overflow:hidden;">
 	
 	{% if schema == None %}
-		No Schema Created
+		Scan the Table to create a schema and enable autocomplete
 	{% else %}
 		<ul>
 		{% for key in schema %}
-		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}})</li>
+		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}}) [{{key['value']['type']}}]</li>
 	
 		{% endfor %}
 		</ul>
 	{% endif %}
+	
 </div> <!--Schema div -->
+<script>$("#schema").data('expanded', false)</script>
+
 
 <span id="fieldInfo" style="float:left;">
 <h2>Field Info</h2>
@@ -44,6 +59,7 @@
 </span> <!--fieldInfo-->
 
 <div style="width:100%;clear:both;"></div>
+<div><a id="schemaExpand" onclick="javscript:toggleSchemaExpand()">Expand/Collapse</a></div>
 <button onclick="javascript:loadSchema()">Get Schema</button>
 <div style="margin-bottom:20px;" id="queryDiv" style="clear:both";></div>
 
@@ -53,10 +69,10 @@
 	<button onclick="javascript:appendCriteriaField()">Add Field</button>
 	<!--appendCriteriaField dynamically puts fields here -->
 </div> <!--queryDiv-->
-<button onclick="javascript:query()">Search</button>
+<button onclick="javascript:query(false)">Search</button>
 <div id="queryCount"></div>
 <div id="resultsDiv">
-	<!--results will be placed here by javascript
+	<!--results will be placed here by javascript -->
 </div> <!--resultsDiv-->
-<a>Previous</a> <a>Next</a>
+<a style="cursor:pointer;cursor:hand" onclick="javascript:alert('not implemented yet')">Previous</a> <a style="cursor:pointer;cursor:hand" onclick="javascript:query(true)">Next</a>
 </body>
