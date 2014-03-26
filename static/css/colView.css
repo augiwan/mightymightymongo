@@ -1,9 +1,19 @@
 input, select{
-	height:30px;
+	height:2.5em;
+	margin-right:2px;
+	font-size:inherit;
 }
 
 .resultSummary, .oneCrit{
 	height:30px;
+}
+
+.value{
+	width:350px;
+}
+
+.valWrapper{
+	width:350px;
 }
 
 .operatorIcon{
@@ -23,4 +33,10 @@ input, select{
 a{
 	cursor:pointer;
 	cursor:hand;
+}
+
+
+.oneCrit{
+	margin-bottom:25px;
+	font-size:20px;
 }

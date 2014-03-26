@@ -68,9 +68,13 @@ def query():
 	limit = data['limit'] #limit the number returned
 	if(lastID != None):
 		queryCrit['_id'] = {'$gt':lastID}
+	#handle conversion to objID if it's anywhere
+	for key in queryCrit:
+		queryCrit[key] = convertIfObjID(queryCrit[key])
 	#set_trace()
 	query = collection.find(queryCrit, selectFields).limit(limit)
 	query.sort("_id",1) #for now, sort by _id so we can page, sorting feature will come later
+	print "found %d items" % query.count()
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 
@@ -137,4 +141,4 @@ def getKeyStats():
 
 if __name__ == '__main__':
 	app.static_url_path='static'
-	app.run(debug=True)
+	app.run(debug=True, port=5001)

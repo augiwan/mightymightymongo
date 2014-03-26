@@ -3,6 +3,7 @@ var regBool = new RegExp(/^(false|true)$/)
 var regStr = new RegExp(/^".*"$/)
 var regNum = new RegExp(/^[0-9]\d*(\.\d+)?$/)
 var regNone = new RegExp(/^null$/)
+var regOid = new RegExp(/^oid:([0-9A-Fa-f]{24})$/)
 
 
 //format is <className>:[<regex>,<conversion function for JSON>]
@@ -10,6 +11,7 @@ var formats = {'boolType':[regBool, function(val){if (val=="false") return false
 'stringType':[regStr, function(val){return val.substring(1,val.length-1)}],
 'numType':[regNum, function(val){return Number(val)}],
 'noneType':[regNone, function(val){return null}],
+'oidType':[regOid, function(val){return {'$oid':regOid.exec(val)[1]}}],
 }
 
 //keep track of the first and last objID currently displayed so we can do paging
@@ -33,8 +35,18 @@ function appendCriteriaField(){
 	var ops = ["$eq","$gt","$gte","$lt","$lte","$exists"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
+		
 	var value = $("<input>",{'type':'text','class':'value','placeholder':'value'})
 	$(value).keyup(function(self){formatValueDiv(self.target);queryChange(self.target)})
+	
+	var valIndicator = $("<div>",{'class':'valTypeIndicator'})
+	var wrapper = $("<span>", {'class':'valWrapper'})
+	//$(wrapper).append(value)
+	//$(wrapper).append(valIndicator)
+	
+	
+	
+	
 	
 
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
@@ -42,6 +54,7 @@ function appendCriteriaField(){
 	
 	$(newCrit).append(field)
 	$(newCrit).append(select)
+	//$(newCrit).append(wrapper)
 	$(newCrit).append(value)
 	//$(newCrit).append(valueBool)
 	$(newCrit).append(removeIcon)
@@ -163,11 +176,11 @@ function loadDoc(div){
 		var expand = $(div).children('.resultExpanded')[0]
 		var serialized = serializeDoc(data['doc'])
 		for(var i in serialized){
-			console.log(i+':'+serialized[i])
+			console.log(i+':'+convertValTypes(i, serialized[i]))
 			var newDiv = $("<div>", {'class':'oneAttr'})
 			$(newDiv).append(i+': ')
 			var val = $("<span>")
-			$(val).append(JSON.stringify(serialized[i]))
+			$(val).append(JSON.stringify(convertValTypes(i, serialized[i])))
 			formatValueDiv(val)
 			$(newDiv).append(val)
 			$(expand).append(newDiv)
@@ -175,6 +188,20 @@ function loadDoc(div){
 	}
 	
 	$(div).data('loaded', true)
+}
+
+
+function convertValTypes(field, value){
+	//takes in a field an value and detects if the field needs to be specially formatted
+	//conversion is done if necessary, if not, the exact same value is returned
+	
+	if(field.indexOf("$date") != -1){
+		var date = new Date(0)
+		date.setUTCSeconds(value/1000)
+		return date
+	}
+	
+	return value
 }
 
 function loadSchema(){
