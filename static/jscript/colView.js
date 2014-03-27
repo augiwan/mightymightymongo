@@ -8,7 +8,7 @@ var regOid = new RegExp(/^oid:([0-9A-Fa-f]{24})$/)
 
 //format is <className>:[<regex>,<conversion function for JSON>]
 var formats = {'boolType':[regBool, function(val){if (val=="false") return false; else return true}],
-'stringType':[regStr, function(val){return val.substring(1,val.length-1)}],
+'stringType':[regStr, function(val){if(val=="" || val=='') return val; return val.substring(1,val.length-1)}],
 'numType':[regNum, function(val){return Number(val)}],
 'noneType':[regNone, function(val){return null}],
 'oidType':[regOid, function(val){return {'$oid':regOid.exec(val)[1]}}],
@@ -32,7 +32,7 @@ function appendCriteriaField(){
 	
 	
 	var select = $('<select>', {'class':'operation', 'onchange':"queryChange(this)"})
-	var ops = ["$eq","$gt","$gte","$lt","$lte","$exists"]
+	var ops = ["$eq","$ne","$gt","$gte","$lt","$lte","$exists","$size"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
 		
@@ -91,9 +91,9 @@ function query(useLastID){
 			continue
 		var operation = $(curCrit).attr('data-operation')
 		var value = $(curCrit).attr('data-value')
-		for(i in formats){
-			var regex = formats[i][0]
-			var conversion = formats[i][1]
+		for(var j in formats){
+			var regex = formats[j][0]
+			var conversion = formats[j][1]
 			if(regex.test(value))
 				value = conversion(value)
 		}
@@ -101,9 +101,9 @@ function query(useLastID){
 		if(operation == '$eq')
 			queryDic[field] = value
 		else{
-			var dic = {}
-			dic[operation] = value
-			queryDic[field] = dic
+			if(!(field in queryDic))
+				queryDic[field] = {}
+			queryDic[field][operation] = value
 		}
 	}
 	
@@ -147,10 +147,16 @@ function queryReceived(data){
 		$(resultContainer).append(divSummary)
 		$(resultContainer).append(expanded)
 		$(resultsDiv).append(resultContainer)
+		
+		if(data['count'] == 1){ //if there's only result, then show it automatically
+			loadDoc(resultContainer)
+			$(resultContainer).attr('data-expaned', true)
+			$(expanded).css('display','')
+		}
 	}
 	firstID = results[0]['_id']
 	lastID = results[results.length-1]['_id']
-}
+} //queryReceived
 
 //loads the next page of the query
 function nextPage(){
@@ -176,7 +182,7 @@ function loadDoc(div){
 		var expand = $(div).children('.resultExpanded')[0]
 		var serialized = serializeDoc(data['doc'])
 		for(var i in serialized){
-			console.log(i+':'+convertValTypes(i, serialized[i]))
+			//console.log(i+':'+convertValTypes(i, serialized[i]))
 			var newDiv = $("<div>", {'class':'oneAttr'})
 			$(newDiv).append(i+': ')
 			var val = $("<span>")
