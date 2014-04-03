@@ -4,6 +4,7 @@ var regStr = new RegExp(/^".*"$/)
 var regNum = new RegExp(/^[0-9]\d*(\.\d+)?$/)
 var regNone = new RegExp(/^null$/)
 var regOid = new RegExp(/^oid:([0-9A-Fa-f]{24})$/)
+var regDate = new RegExp(/^dt:([0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2})?)$/)
 
 
 //format is <className>:[<regex>,<conversion function for JSON>]
@@ -12,22 +13,17 @@ var formats = {'boolType':[regBool, function(val){if (val=="false") return false
 'numType':[regNum, function(val){return Number(val)}],
 'noneType':[regNone, function(val){return null}],
 'oidType':[regOid, function(val){return {'$oid':regOid.exec(val)[1]}}],
+'dateType':[regDate, function(val){return {'$date':(new Date(regDate.exec(val)[1])).getTime()/1000}}],
 }
 
-//keep track of the first and last objID currently displayed so we can do paging
-var lastID = null
-var firstID = null
+
 
 
 function appendCriteriaField(){
 	var newCrit = $('<div>',{'class':"oneCrit"})
 	var field = $('<input>',{'type':'text', 'class':'field', 'placeholder':'field','onchange':"queryChange(this)"})
 	
-	if(dbKeys){ //only add autocomplete if the keys have been scanned
-		$(field).autocomplete({'source':dbKeys,'minLength':0}).focus(function () {
-		$(this).autocomplete("search"); //makes the autocomplete show immediately on focus
-});
-	}
+	makeAutocompleteField(field)
 	
 	
 	
@@ -41,14 +37,6 @@ function appendCriteriaField(){
 	
 	var valIndicator = $("<div>",{'class':'valTypeIndicator'})
 	var wrapper = $("<span>", {'class':'valWrapper'})
-	//$(wrapper).append(value)
-	//$(wrapper).append(valIndicator)
-	
-	
-	
-	
-	
-
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
 	
 	
@@ -59,7 +47,15 @@ function appendCriteriaField(){
 	//$(newCrit).append(valueBool)
 	$(newCrit).append(removeIcon)
 	$("#queryDiv").append(newCrit)
-}
+} //appendCriteriaField
+
+//takes in an input field and turns it into an autocomplete field if a schema exists.  Otherwise it does nothing
+function makeAutocompleteField(input){
+	if(dbKeys){ //only add autocomplete if the keys have been scanned
+		$(input).autocomplete({'source':dbKeys,'minLength':0}).focus(function () {
+		$(this).autocomplete("search"); //makes the autocomplete show immediately on focus
+	})}
+} //makeAutocompleteField
 
 
 
@@ -78,8 +74,8 @@ function queryChange(self){
 
 
 
-//if useLastID is true, then it the next query will start from the next ID to create a paging functionality
-function query(useLastID){
+//skip specifies how far to walk along the document before returning.  Used for paging
+function query(skip){
 	console.log("querying")
 	var crits = $('#queryDiv').children('.oneCrit')
 	var resultsDiv = $("#resultsDiv")
@@ -112,10 +108,11 @@ function query(useLastID){
 	data['colName'] = colName
 	data['query'] = queryDic
 	data['limit'] = 10 //limit number of results returned
-	if(useLastID)
-		data['lastID'] = lastID
-	else
-		data['lastID'] = null
+	data['skip'] = skip
+	if($('#sortField').val()){ //if a field was provide for sorting
+		data['sortField'] = $('#sortField').val()
+		data['sortDirection'] = Number($('#sortDirection').val())
+	}
 	$.ajax({url:'/ajax/query', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:queryReceived})
 }
 
@@ -154,8 +151,7 @@ function queryReceived(data){
 			$(expanded).css('display','')
 		}
 	}
-	firstID = results[0]['_id']
-	lastID = results[results.length-1]['_id']
+
 } //queryReceived
 
 //loads the next page of the query

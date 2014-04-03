@@ -16,7 +16,6 @@
 	<script>
 	//$(document).bind('keydown', 'ctrl+a', changeValueType);
 	$(document).ready(function(){
-		
 		$(".oneKeyContainer").click(loadDistinctVals)
 	
 	dbName = "{{dbName}}"
@@ -25,10 +24,10 @@
 	$.ajax({url:'/ajax/getKeysList', type:'POST', data:JSON.stringify({'colName':colName,'dbName':dbName}), contentType:'application/json', 
 	success:function(data){
 		dbKeys = data['keys']
+		makeAutocompleteField($('#sortField'))
 		appendCriteriaField()
 	}})
-	
-	})
+	})//document.ready
 	</script>
 </head>
 
@@ -69,6 +68,13 @@
 	<button onclick="javascript:appendCriteriaField()">Add Field</button>
 	<!--appendCriteriaField dynamically puts fields here -->
 </div> <!--queryDiv-->
+<div id='sortDiv'>
+	Sorty by:<input id='sortField' type="text" placeholder='field'>
+	<select id='sortDirection'>
+		<option value='1'>Ascending</option>
+		<option value='-1'>Descending</option>
+	</select>
+</div> <!--sort div -->
 <button onclick="javascript:query(false)">Search</button>
 <div id="queryCount"></div>
 <div id="resultsDiv">

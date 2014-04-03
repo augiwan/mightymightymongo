@@ -9,6 +9,7 @@ from bson.json_util import dumps, loads
 from json import loads
 import os
 from pdb import set_trace
+from datetime import datetime
 
 @app.route('/')
 def home():
@@ -54,36 +55,45 @@ def getKeysList():
 	
 @app.route('/ajax/query', methods=['GET','POST'])
 def query():
-	print "running"
 	data = request.json
-	print "received " + str(data)
 	dbName = data['dbName']
 	colName = data['colName']
 	collection = mongo[dbName][colName]
 	queryCrit = data['query']
-	
+	convertIncomingTypes(data)
 	selectFields = {'_id':1} #which fields are sent to display
 	
-	lastID = convertIfObjID(data['lastID'])
+	
 	limit = data['limit'] #limit the number returned
-	if(lastID != None):
-		queryCrit['_id'] = {'$gt':lastID}
 	#handle conversion to objID if it's anywhere
 	for key in queryCrit:
-		queryCrit[key] = convertIfObjID(queryCrit[key])
+		queryCrit[key] = queryCrit[key]
+	print "converted criteria is ", queryCrit
 	#set_trace()
 	query = collection.find(queryCrit, selectFields).limit(limit)
-	query.sort("_id",1) #for now, sort by _id so we can page, sorting feature will come later
+	if 'sortField' in data: #if a sort field was specified
+		sortField = data['sortField']
+		sortDirection = data['sortDirection']
+		query.sort(sortField,sortDirection)
 	print "found %d items" % query.count()
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
 
 	
-def convertIfObjID(thing):
-	'''takes in an argument and returns it as an objectID if it is the JSON representation of one.  Otherwise it returns the exact same thing'''
-	if type(thing) == type({}) and '$oid' in thing: #handle objectID type
-		return ObjectId(thing['$oid'])
-	return thing
+def convertIncomingTypes(queryCrit):
+	'''a recursive method takes in the whole query as an arguemt and returns it with specially encoded types (i.e. objectID's and date) converted to their proper format'''
+	for key in  queryCrit:
+		val = queryCrit[key]
+		# if val is a dictionary with only one key which is '$oid'
+		if type(val) == type({}) and val.keys() == ['$oid']:
+			print "converting oid"
+			queryCrit[key] =  ObjectId(val['$oid'])
+		elif type(val) == type({}) and val.keys() == ['$date']:
+			print "converint date"
+			queryCrit[key] =  datetime.fromtimestamp(val['$date'])
+		elif type(val) == type({}):
+			print "recursing"
+			convertIncomingTypes(val)
 
 @app.route('/ajax/loadDocument', methods=['GET','POST'])
 def loadDocument():
