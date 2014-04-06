@@ -75,10 +75,10 @@
 		<option value='-1'>Descending</option>
 	</select>
 </div> <!--sort div -->
-<button onclick="javascript:query(false)">Search</button>
+<button onclick="javascript:querySkip=0;query(querySkip, pageSize)">Search</button>
 <div id="queryCount"></div>
 <div id="resultsDiv">
 	<!--results will be placed here by javascript -->
 </div> <!--resultsDiv-->
-<a style="cursor:pointer;cursor:hand" onclick="javascript:alert('not implemented yet')">Previous</a> <a style="cursor:pointer;cursor:hand" onclick="javascript:query(true)">Next</a>
+<a style="cursor:pointer;cursor:hand" onclick="javascript:alert('not implemented yet')">Previous</a> <a style="cursor:pointer;cursor:hand" onclick="querySkip=querySkip+pageSize;javascript:query(querySkip, pageSize)">Next</a>
 </body>

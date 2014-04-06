@@ -1,7 +1,7 @@
 //use for automatically converting types for query and syntax hilighting
 var regBool = new RegExp(/^(false|true)$/)
 var regStr = new RegExp(/^".*"$/)
-var regNum = new RegExp(/^[0-9]\d*(\.\d+)?$/)
+var regNum = new RegExp(/^(-)?[0-9]\d*(\.\d+)?$/)
 var regNone = new RegExp(/^null$/)
 var regOid = new RegExp(/^oid:([0-9A-Fa-f]{24})$/)
 var regDate = new RegExp(/^dt:([0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2})?)$/)
@@ -16,7 +16,9 @@ var formats = {'boolType':[regBool, function(val){if (val=="false") return false
 'dateType':[regDate, function(val){return {'$date':(new Date(regDate.exec(val)[1])).getTime()/1000}}],
 }
 
-
+//keep track of where we are in the search query for paging
+var pageSize = 10;
+var querySkip = 0;
 
 
 function appendCriteriaField(){
@@ -60,7 +62,6 @@ function makeAutocompleteField(input){
 
 
 function queryChange(self){
-	console.log("change")
 	var oneCrit = $(self).parent()
 	var field = $(oneCrit).children('.field')[0]
 	var operation = $(oneCrit).children('.operation')[0]
@@ -75,8 +76,9 @@ function queryChange(self){
 
 
 //skip specifies how far to walk along the document before returning.  Used for paging
-function query(skip){
-	console.log("querying")
+function query(skip, pageSize){
+	if(skip == undefined)
+		skip = 0
 	var crits = $('#queryDiv').children('.oneCrit')
 	var resultsDiv = $("#resultsDiv")
 	var queryDic = {}
@@ -107,7 +109,7 @@ function query(skip){
 	data['dbName'] = dbName
 	data['colName'] = colName
 	data['query'] = queryDic
-	data['limit'] = 10 //limit number of results returned
+	data['limit'] = pageSize //limit number of results returned
 	data['skip'] = skip
 	if($('#sortField').val()){ //if a field was provide for sorting
 		data['sortField'] = $('#sortField').val()
@@ -167,7 +169,6 @@ function toggleExpanded(div){
 }
 
 function loadDoc(div){
-	console.log('loading doc with id ' + $(div).data('_id'))
 	var data = {}
 	data['dbName'] = dbName
 	data['colName'] = colName
@@ -178,7 +179,6 @@ function loadDoc(div){
 		var expand = $(div).children('.resultExpanded')[0]
 		var serialized = serializeDoc(data['doc'])
 		for(var i in serialized){
-			//console.log(i+':'+convertValTypes(i, serialized[i]))
 			var newDiv = $("<div>", {'class':'oneAttr'})
 			$(newDiv).append(i+': ')
 			var val = $("<span>")
@@ -207,7 +207,6 @@ function convertValTypes(field, value){
 }
 
 function loadSchema(){
-	console.log('getting schema')
 	var data = {}
 	data['dbName'] = dbName
 	data['colName'] = colName
@@ -237,7 +236,6 @@ function formatValue(event){
 
 //takes in a DIV containing a value and styles it according to it's type
 function formatValueDiv(div){
-	console.log('change')
 	var val = $(div).html()
 	if(val == "")
 		val = $(div).val() //handle inputs as well, not just divs
@@ -269,7 +267,6 @@ function loadDistinctVals(event){
 			var newDiv = $('<div>')
 			newDiv.append(JSON.stringify(vals[i]))
 			formatValueDiv(newDiv)
-			console.log(vals[i])
 			$(fieldList).append(newDiv)
 		}
 	}

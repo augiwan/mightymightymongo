@@ -75,6 +75,7 @@ def query():
 		sortField = data['sortField']
 		sortDirection = data['sortDirection']
 		query.sort(sortField,sortDirection)
+	query.skip(data['skip'])
 	print "found %d items" % query.count()
 	jsonStr = dumps({'results':query,'count':query.count()}) #converts cursor to jsonified string
 	return Response(jsonStr, mimetype='application/json')
