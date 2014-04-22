@@ -138,7 +138,7 @@ def getKeyStats():
 	print "test1"
 	db = data['dbName']
 	col = data['colName']
-	output = os.popen('''mongo %s --eval "var collection = '%s'" variety-master/variety.js''' % (db, col) ).read()
+	output = os.popen('''mongo %s --eval "var collection = '%s'" variety/variety.js''' % (db, col) ).read()
 	output = output.split('\n')[:]
 	
 	#evaled = [literal_eval(i) for i in output]

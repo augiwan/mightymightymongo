@@ -42,7 +42,13 @@
 	{% else %}
 		<ul>
 		{% for key in schema %}
-		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}} ({{key['percentContaining']}}% / #{{key['totalOccurrences']}}) [{{key['value']['type']}}]</li>
+		{% set percentContaining = key['percentContaining'] %}
+		{% set total = key['totalOccurrences'] %}
+		{% set types = key['value']['types'] %}
+		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}}
+		<div>({{percentContaining}}% / #{{total}}) [{{', '.join(key['value']['types'])}}]</div>
+		
+		</li>
 	
 		{% endfor %}
 		</ul>

@@ -30,7 +30,7 @@ function appendCriteriaField(){
 	
 	
 	var select = $('<select>', {'class':'operation', 'onchange':"queryChange(this)"})
-	var ops = ["$eq","$ne","$gt","$gte","$lt","$lte","$exists","$size"]
+	var ops = ["$eq","$ne","$gt","$gte","$lt","$lte","$exists","$size","$type"]
 	for(var i=0; i<ops.length;i++)
 		select.append($('<option>', {'value':ops[i],'html':ops[i]}))
 		
@@ -163,8 +163,9 @@ function nextPage(){
 
 function toggleExpanded(div){
 	var expanded = $(div).children('.resultExpanded')[0]
-	if(!$(div).data('loaded'))
+	if(!$(div).data('loaded')){
 		loadDoc(div)
+	}
 	$(expanded).slideToggle()
 }
 
