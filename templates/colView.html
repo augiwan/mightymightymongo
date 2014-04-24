@@ -45,8 +45,15 @@
 		{% set percentContaining = key['percentContaining'] %}
 		{% set total = key['totalOccurrences'] %}
 		{% set types = key['value']['types'] %}
-		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}">{{key['_id']['key']}}
-		<div>({{percentContaining}}% / #{{total}}) [{{', '.join(key['value']['types'])}}]</div>
+		
+		{# create a dictionary to convert variety types to the correct css class for color styling #}
+		{% set varietyTypeClasses = {'ObjectId':'oidType', 'String':'stringType', 'Boolean':'boolType','null':'noneType','Number':'numType'} %}
+		
+		<li class="oneKeyContainer" data-field="{{key['_id']['key']}}"><div class="key">{{key['_id']['key']}}</div>
+		<div class='stats'> <span class='count');">count:{{total}} ({{percentContaining|round|int}}%)</span> &bull; 
+		<span class='types'>{% for type in types %}<span class={{varietyTypeClasses[type]}}>{{type}}</span>{% if loop.index0 < ((types|length)-1) %}, {% endif %}{%endfor%}
+		
+		</span></div> <!--end stats div -->
 		
 		</li>
 	
@@ -69,9 +76,9 @@
 <div style="margin-bottom:20px;" id="queryDiv" style="clear:both";></div>
 
 
-
+<button onclick="javascript:appendCriteriaField()">Add Field</button>
 <h2>Query Div</h2>
-	<button onclick="javascript:appendCriteriaField()">Add Field</button>
+	
 	<!--appendCriteriaField dynamically puts fields here -->
 </div> <!--queryDiv-->
 <div id='sortDiv'>

@@ -39,7 +39,8 @@ function appendCriteriaField(){
 	
 	var valIndicator = $("<div>",{'class':'valTypeIndicator'})
 	var wrapper = $("<span>", {'class':'valWrapper'})
-	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png'})
+	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png','style':"cursor:pointer;cursor:hand;"})
+	removeIcon.click(function(){console.log($(this).parent().remove())})
 	
 	
 	$(newCrit).append(field)
@@ -50,6 +51,10 @@ function appendCriteriaField(){
 	$(newCrit).append(removeIcon)
 	$("#queryDiv").append(newCrit)
 } //appendCriteriaField
+
+function appendUpdateField(){
+	var newCrit = 5;
+} //appendUpdateField
 
 //takes in an input field and turns it into an autocomplete field if a schema exists.  Otherwise it does nothing
 function makeAutocompleteField(input){

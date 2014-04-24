@@ -24,11 +24,28 @@ input, select{
 	margin-left:30px;
 }
 
-.oneKeyContainer:hover {
+.oneKeyContainer{
+	font-size:14px;
+	line-height:1.2em;
+}
+
+.oneKeyContainer > .key:hover {
     color:blue;
     cursor: pointer; 
     cursor: hand;
 }
+
+.oneKeyContainer > .key{
+	font-weight:bold;
+	
+}
+
+.oneKeyContainer > .stats{
+	font-size:95%;
+	margin-left:20px;
+}
+
+
 
 a{
 	cursor:pointer;
