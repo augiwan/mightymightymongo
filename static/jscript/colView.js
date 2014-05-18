@@ -255,7 +255,7 @@ function formatValueDiv(div){
 //takes in a field value and retrieves the unique values for that field
 function loadDistinctVals(event){
 	data = {}
-	var field = $(event.target).attr('data-field')
+	var field = $(event.target).parent().attr('data-field')
 	data['dbName'] = dbName
 	data['colName'] = colName
 	data['field'] = field
