@@ -78,8 +78,9 @@ function queryChange(self){
 	
 	opVal = $(operation).val();
 	//set the tooltip helper for $type
+	$(value).attr("title", "") //need a dummy title for the 'content' field to work
 	if(opVal == "$type"){
-		$(value).attr("title", "") //need a dummy title for the 'content' field to work
+		
 		$(value).tooltip({'content':function(){var ret = "<div style='font-weight:bold'>Integer correspondences for $type query</div>"
 			var types = ['Double', 'String', 'Object', 'Array', 'Binary Data', 'Undefined (deprecated', 'Object id', 'Boolean', 'Date', 'Null', 'Regular Expression', 'Javascript', 'Symbol', 'Javascript (with scope', '32-bit integer', 'Timestamp', '64-bit integer']
 			for(var i=0;i<types.length;i++)
@@ -89,7 +90,9 @@ function queryChange(self){
 			return ret
 		}})
 		$(value).tooltip('enable')
-		$(value).tooltip().off("mouseover mouseout");
+	}
+	else if(opVal == "$exists"){
+		$(value).tooltip({'content':function(){return "<strong>True</strong> or <strong>False</strong>"}})
 	}
 	else{
 		$(value).tooltip() //must be initalized before making sure it's disabled, otherwise it may cause an error
