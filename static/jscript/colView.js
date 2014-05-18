@@ -206,11 +206,13 @@ function loadDoc(div){
 	function docReceived(data){
 		var expand = $(div).children('.resultExpanded')[0]
 		var serialized = serializeDoc(data['doc'])
-		for(var i in serialized){
+		var keys = Object.keys(serialized).sort() //get the keys sorted alphabetically
+		for(var i=0;i<keys.length;i++){
+			var curKey = keys[i]
 			var newDiv = $("<div>", {'class':'oneAttr'})
-			$(newDiv).append(i+': ')
+			$(newDiv).append(curKey+': ')
 			var val = $("<span>")
-			$(val).append(JSON.stringify(convertValTypes(i, serialized[i])))
+			$(val).append(JSON.stringify(convertValTypes(curKey, serialized[curKey])))
 			formatValueDiv(val)
 			$(newDiv).append(val)
 			$(expand).append(newDiv)
