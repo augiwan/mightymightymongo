@@ -22,13 +22,10 @@ var querySkip = 0;
 
 
 function appendCriteriaField(){
-	var newCrit = $('<div>',{'class':"oneCrit"})
+	var newCrit = $('<div>',{'class':"oneCrit", 'style':'display:none;'})
 	var field = $('<input>',{'type':'text', 'class':'field', 'placeholder':'field','onchange':"queryChange(this)"})
-	
 	makeAutocompleteField(field)
-	
-	
-	
+
 	var select = $('<select>', {'class':'operation', 'onchange':"queryChange(this)"})
 	var ops = ["$eq","$ne","$gt","$gte","$lt","$lte","$exists","$size","$type"]
 	for(var i=0; i<ops.length;i++)
@@ -40,7 +37,7 @@ function appendCriteriaField(){
 	var valIndicator = $("<div>",{'class':'valTypeIndicator'})
 	var wrapper = $("<span>", {'class':'valWrapper'})
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png','style':"cursor:pointer;cursor:hand;"})
-	removeIcon.click(function(){console.log($(this).parent().remove())})
+	removeIcon.click(function(){$(this).parent().slideUp(200,function(){$(this).remove()})})
 	
 	
 	$(newCrit).append(field)
@@ -50,6 +47,9 @@ function appendCriteriaField(){
 	//$(newCrit).append(valueBool)
 	$(newCrit).append(removeIcon)
 	$("#queryDiv").append(newCrit)
+	var numCrits = $("#queryDiv").children().length
+	//if this is the first field, down't do smooth slide.  This avoids slide-in when page loads
+	$(newCrit).slideDown((numCrits>1)?100:0)
 } //appendCriteriaField
 
 function appendUpdateField(){
