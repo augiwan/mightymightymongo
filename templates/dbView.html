@@ -1,9 +1,51 @@
-<a href='/'>Home</a> -> {{db.name}}
+<head>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/dbView.css">
+	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
+	
+	<script>
+	dbStats = null
+	$(document).ready(function(){
+		$.ajax({url:'/ajax/gettablesstats/{{db.name}}', contentType:'application/json', success:statsReceived})	
+		function statsReceived(data){
+				dbStats = data['stats'];
+			}
+		
+		//display db information on hover
+		$(".oneDBli").hover(function(self){showDBInfo($(self.target).attr('data-table'))})
+		}) //document.ready
+		
+		function showDBInfo(dbName){
+			$("#dbStats .dbName").html(dbName)
+			$("#dbStats .count").html(dbStats[dbName]['count'])
+			
+			var indexList = $("<ol>")
+			for(var oneIndex in dbStats[dbName]['indexInfo']){
+				var newEl = $("<li>")
+				newEl.html(oneIndex)
+				indexList.append(newEl)
+			}
+			$("#dbStats .indexInfo").html(indexList)
+			
+		
+		}
+	</script>
+</head>
+<div style="font-size:30px;margin-top:30px;"><a href='/'>Home</a> -> {{db.name}}</div>
 <br><br>
-Collections:
-<ul>
+<h1>Collections:</h1>
+<ul style="width:45%; float:left;">
 {% for col in db.collection_names() %}
-	<li><a href="/db/{{db.name}}/col/{{col}}">{{col}}</a></li>
+	<li class="oneDBli" data-table={{col}}><a data-table={{col}} href="/db/{{db.name}}/col/{{col}}">{{col}}</a></li>
 {% endfor %}
 
 </ul>
+
+<div id='dbStats' style="width:45%;height:400px;float:left;">
+<h1 class='dbName'>DB Name<h2>
+<div> <span class='count'></span> documents </div>
+
+<h3>Index Info</h3>
+<div class='indexInfo'></div>
+
+</div>

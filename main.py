@@ -150,6 +150,23 @@ def getKeyStats():
 			pass
 	return Response(dumps({'schema':evaled}), mimetype='application/json')
 
+
+@app.route('/ajax/gettablesstats/<dbName>')
+def getTabelsStats(dbName):
+	'''given a specified <dbName>, return all metadata about all tables in that DB'''
+	db = mongo[dbName]
+	stats = {}
+	for tableName in db.collection_names():
+		newStats = {}
+		
+		table = db[tableName]
+		newStats['count'] = table.count()
+		newStats['indexInfo'] = table.index_information()
+		
+		stats[tableName] = newStats
+	return Response(dumps({'stats':stats}), mimetype='application/json')
+		
+
 if __name__ == '__main__':
 	app.static_url_path='static'
 	app.run(debug=True, port=5001)

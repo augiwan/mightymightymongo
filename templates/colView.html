@@ -35,7 +35,7 @@
 <div id="breadCrumbPath"><h2><a href='/'>Home</a> -> <a href='/db/{{dbName}}'>{{dbName}}</a> -> {{colName}}</h2></div>
 <div style="font-size:30px;height:35px;margin-top:10px;margin-left:15px;">{{count}} total entries</div>
 
-<div id="schema" style="float:left;width:50%;height:100px;overflow:hidden;">
+<div id="schema" style="float:left;width:50%;height:200px;overflow:auto;">
 	
 	{% if schema == None %}
 		Scan the Table to create a schema and enable autocomplete
@@ -65,7 +65,7 @@
 <script>$("#schema").data('expanded', false)</script>
 
 
-<span id="fieldInfo" style="float:left;">
+<span id="fieldInfo" style="float:left;height:200px;width:50%;overflow:auto;">
 <h2>Field Info</h2>
 	<div id="fieldlist"></div>
 </span> <!--fieldInfo-->
@@ -73,14 +73,12 @@
 <div style="width:100%;clear:both;"></div>
 <div><a id="schemaExpand" onclick="javscript:toggleSchemaExpand()">Expand/Collapse</a></div>
 <button onclick="javascript:loadSchema()">Get Schema</button>
-<div style="margin-bottom:20px;" id="queryDiv" style="clear:both";></div>
-
-
-<button onclick="javascript:appendCriteriaField()">Add Field</button>
 <h2>Query Div</h2>
-	
+<div style="margin-bottom:20px;" id="queryDiv" style="clear:both";>
 	<!--appendCriteriaField dynamically puts fields here -->
-</div> <!--queryDiv-->
+</div>
+
+<button onclick="javascript:appendCriteriaField()">Add Criteria Field</button>
 <div id='sortDiv'>
 	Sorty by:<input id='sortField' type="text" placeholder='field'>
 	<select id='sortDirection'>
@@ -88,6 +86,7 @@
 		<option value='-1'>Descending</option>
 	</select>
 </div> <!--sort div -->
+<div id="queryOrUpdate">hello world</div>
 <button onclick="javascript:querySkip=0;query(querySkip, pageSize)">Search</button>
 <div id="queryCount"></div>
 <div id="resultsDiv">
