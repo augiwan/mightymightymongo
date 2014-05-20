@@ -119,8 +119,10 @@ function query(skip, pageSize){
 		for(var j in formats){
 			var regex = formats[j][0]
 			var conversion = formats[j][1]
-			if(regex.test(value))
+			if(regex.test(value)){
 				value = conversion(value)
+				break;
+			}
 		}
 		
 		if(operation == '$eq')
@@ -307,7 +309,7 @@ function toggleSchemaExpand(){
 	var curHeight = schema.height(),
     autoHeight = schema.css('height', 'auto').height();
 	if(schema.data('expanded')){
-		schema.animate({'height':'100px'},1000)
+		schema.animate({'height':'200px'},1000)
 		schema.data('expanded',false)
 	}
 	else{
