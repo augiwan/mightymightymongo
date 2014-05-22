@@ -6,6 +6,7 @@ app = Flask(__name__)
 import unicodedata
 mongo = Connection()
 from bson.json_util import dumps, loads
+from bson.son import SON
 from json import loads
 import os
 from pdb import set_trace
@@ -60,6 +61,7 @@ def query():
 	colName = data['colName']
 	collection = mongo[dbName][colName]
 	queryCrit = data['query']
+	geoNear = data.get('geoQuery')
 	convertIncomingTypes(data)
 	selectFields = {'_id':1} #which fields are sent to display
 	
@@ -70,7 +72,18 @@ def query():
 		queryCrit[key] = queryCrit[key]
 	print "converted criteria is ", queryCrit
 	#set_trace()
-	query = collection.find(queryCrit, selectFields).limit(limit)
+	if not geoNear: #if it's just a normal query
+		query = collection.find(queryCrit, selectFields).limit(limit)
+	else: #it's a geospatial search
+		son = SON
+		son['geoNear'] = mongo[dbName][colName]
+		son['near'] = [geoNear['lng'],geoNear['lat']]
+		son['num'] = 1000000000000000
+		son['maxDistance'] = geoNear['maxDist']
+		son['limit'] = limit
+		son['query'] = queryCrit
+		
+		query = mongo[dbName].command(son)
 	if 'sortField' in data: #if a sort field was specified
 		sortField = data['sortField']
 		sortDirection = data['sortDirection']
