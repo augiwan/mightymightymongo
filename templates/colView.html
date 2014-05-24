@@ -21,12 +21,30 @@
 	dbName = "{{dbName}}"
 	colName = "{{colName}}"
 	dbKeys = null
+	indexes = null; //make a list of all the indexes
+	indexes2d = null; // make a list of all the 2d indexes
 	$.ajax({url:'/ajax/getKeysList', type:'POST', data:JSON.stringify({'colName':colName,'dbName':dbName}), contentType:'application/json', 
 	success:function(data){
 		dbKeys = data['keys']
 		makeAutocompleteField($('#sortField'))
 		appendCriteriaField()
 	}})
+	
+	$.ajax({url:'/ajax/gettablesstats/'+dbName, type:'POST',success:function(data){
+		var values = data['stats']
+		indexes = []
+		indexes2d = []
+		for(key in values[colName]['indexInfo']){
+			var keyStr = values[colName]['indexInfo'][key]['key'][0][0]
+			var keyType = values[colName]['indexInfo'][key]['key'][0][1]
+			indexes.push(keyStr)
+			if(keyType == "2d")
+				indexes2d.push(keyStr)
+		}
+	
+		//once we know which tables have 2d indexes, populate the list of options for the geospatial query
+		make2dAutocompleteField($('#geosearchfield'))
+	}}) // end /ajax/gettablesstats
 	})//document.ready
 	</script>
 </head>
@@ -79,6 +97,13 @@
 </div>
 
 <button onclick="javascript:appendCriteriaField()">Add Criteria Field</button>
+
+<div id='geoSearchDiv'>
+	<input id="geosearch" type="checkbox" name="geosearch" value='true'>Search with geospatial index<br>
+<input type="text" id='geosearchfield' placeholder='field to search with'>
+<input type="text" id='geosearchx' placeholder="X value">
+<input type="text" id='geosearchy' placeholder="Y value">
+</div> <!--geoSearch -->
 <div id='sortDiv'>
 	Sorty by:<input id='sortField' type="text" placeholder='field'>
 	<select id='sortDirection'>
@@ -86,7 +111,6 @@
 		<option value='-1'>Descending</option>
 	</select>
 </div> <!--sort div -->
-<div id="queryOrUpdate">hello world</div>
 <button onclick="javascript:querySkip=0;query(querySkip, pageSize)">Search</button>
 <div id="queryCount"></div>
 <div id="resultsDiv">

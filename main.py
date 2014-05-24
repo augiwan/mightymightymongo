@@ -50,9 +50,6 @@ def getKeysList():
 		keys = [doc['_id']['key'] for doc in colSchema.find()]
 	return jsonify({'keys':keys})
 	
-		
-		
-	
 @app.route('/ajax/query', methods=['GET','POST'])
 def query():
 	data = request.json
@@ -63,11 +60,15 @@ def query():
 	convertIncomingTypes(data)
 	selectFields = {'_id':1} #which fields are sent to display
 	
-	
 	limit = data['limit'] #limit the number returned
 	#handle conversion to objID if it's anywhere
 	for key in queryCrit:
 		queryCrit[key] = queryCrit[key]
+	
+	if data['geoSearch']: # are we doing a geospatial search?
+		geoX = float(data['geoSearchX'])
+		geoY = float(data['geoSearchY'])
+		queryCrit['cached.geoLoc'] = {'$near':[geoX,geoY]}
 	print "converted criteria is ", queryCrit
 	#set_trace()
 	query = collection.find(queryCrit, selectFields).limit(limit)
@@ -151,7 +152,7 @@ def getKeyStats():
 	return Response(dumps({'schema':evaled}), mimetype='application/json')
 
 
-@app.route('/ajax/gettablesstats/<dbName>')
+@app.route('/ajax/gettablesstats/<dbName>', methods=['GET','POST'])
 def getTabelsStats(dbName):
 	'''given a specified <dbName>, return all metadata about all tables in that DB'''
 	db = mongo[dbName]

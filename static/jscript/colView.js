@@ -64,6 +64,36 @@ function makeAutocompleteField(input){
 	})}
 } //makeAutocompleteField
 
+//turns an input field into a field autocompleted with fields that have a 2d index.
+function make2dAutocompleteField(input){
+	//make a special catcomplete class for creating the category header
+	 $.widget( "custom.catcomplete", $.ui.autocomplete, {
+_renderMenu: function( ul, items ) {
+var that = this,
+currentCategory = "";
+$.each( items, function( index, item ) {
+if ( item.category != currentCategory ) {
+ul.append( "<li style='font-weight:bold;' class='ui-autocomplete-category'>" + item.category + "</li>" );
+currentCategory = item.category;
+}
+that._renderItemData( ul, item );
+});
+}
+});
+	//convert indexes2d to categorized-formatted version for jquery-ui autocomplete
+	categoried = []
+	for(key in indexes2d){
+		var newDic = {}
+		newDic['label'] = indexes2d[key]
+		newDic['category'] = "Fields with a 2D index"
+		categoried.push(newDic)
+	}
+	if(indexes2d){ //only add autocomplete if the keys have been scanned
+		$(input).catcomplete({'source':categoried,'minLength':0}).focus(function () {
+		$(this).catcomplete("search"); //makes the autocomplete show immediately on focus
+	})}
+}  //make2dAutocompleteField
+
 
 
 function queryChange(self){
@@ -143,6 +173,11 @@ function query(skip, pageSize){
 	if($('#sortField').val()){ //if a field was provide for sorting
 		data['sortField'] = $('#sortField').val()
 		data['sortDirection'] = Number($('#sortDirection').val())
+	}
+	data['geoSearch'] = $('#geosearch').is(":checked")
+	if(data['geoSearch']){ //are we using the geospatial index?
+		data['geoSearchX'] = $('#geosearchx').val()
+		data['geoSearchY'] = $('#geosearchy').val()
 	}
 	$.ajax({url:'/ajax/query', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:queryReceived})
 }
