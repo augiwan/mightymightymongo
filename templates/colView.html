@@ -95,11 +95,12 @@
 <div style="margin-bottom:20px;" id="queryDiv" style="clear:both";>
 	<!--appendCriteriaField dynamically puts fields here -->
 </div>
+<br><br>
+<div><button style="clear:both;" onclick="javascript:appendCriteriaField()">Add Criteria Field</button></div>
 
-<button onclick="javascript:appendCriteriaField()">Add Criteria Field</button>
+<div><input id="geosearch" type="checkbox" onchange="javascript:$('#geoSearchDiv').slideToggle(150)" name="geosearch" value='true'><label for="geosearch" style="display:inline">Search with geospatial index</label></div>
 
-<div id='geoSearchDiv'>
-	<input id="geosearch" type="checkbox" name="geosearch" value='true'>Search with geospatial index<br>
+<div id='geoSearchDiv' style='display:none'>
 <input type="text" id='geosearchfield' placeholder='field to search with'>
 <input type="text" id='geosearchx' placeholder="X value">
 <input type="text" id='geosearchy' placeholder="Y value">

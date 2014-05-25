@@ -6,14 +6,16 @@ var regNone = new RegExp(/^null$/)
 var regOid = new RegExp(/^oid:([0-9A-Fa-f]{24})$/)
 var regDate = new RegExp(/^dt:([0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2})?)$/)
 
+//this is a dictionary where each index corresponds to the correct integer type when using the $type query
+var typeTypes = ['Double', 'String', 'Object', 'Array', 'Binary Data', 'Undefined (deprecated', 'Object id', 'Boolean', 'Date', 'Null', 'Regular Expression', 'Javascript', 'Symbol', 'Javascript (with scope', '32-bit integer', 'Timestamp', '64-bit integer']
 
 //format is <className>:[<regex>,<conversion function for JSON>]
-var formats = {'boolType':[regBool, function(val){if (val=="false") return false; else return true}],
-'stringType':[regStr, function(val){if(val=="" || val=='') return val; return val.substring(1,val.length-1)}],
-'numType':[regNum, function(val){return Number(val)}],
-'noneType':[regNone, function(val){return null}],
-'oidType':[regOid, function(val){return {'$oid':regOid.exec(val)[1]}}],
-'dateType':[regDate, function(val){return {'$date':(new Date(regDate.exec(val)[1])).getTime()/1000}}],
+var formats = {'boolType':[regBool, function(val){if (val=="false") return false; else return true}, 'Boolean'],
+'stringType':[regStr, function(val){if(val=="" || val=='') return val; return val.substring(1,val.length-1)}, 'String'],
+'numType':[regNum, function(val){return Number(val)}, 'Number'],
+'noneType':[regNone, function(val){return null}, 'None'],
+'oidType':[regOid, function(val){return {'$oid':regOid.exec(val)[1]}}, "Object ID"],
+'dateType':[regDate, function(val){return {'$date':(new Date(regDate.exec(val)[1])).getTime()/1000}}, 'Date'],
 }
 
 //keep track of where we are in the search query for paging
@@ -34,17 +36,22 @@ function appendCriteriaField(){
 	var value = $("<input>",{'type':'text','class':'value','placeholder':'value'})
 	$(value).keyup(function(self){formatValueDiv(self.target);queryChange(self.target)})
 	
-	var valIndicator = $("<div>",{'class':'valTypeIndicator'})
+	//var valIndicator = $("<span>",{'class':'valTypeIndicator'})
 	var wrapper = $("<span>", {'class':'valWrapper'})
 	var removeIcon = $('<img>', {'class':'operatorIcon', 'src':'/static/images/remove-icon.png','style':"cursor:pointer;cursor:hand;"})
 	removeIcon.click(function(){$(this).parent().slideUp(200,function(){$(this).remove()})})
 	
 	
+	
+	
 	$(newCrit).append(field)
 	$(newCrit).append(select)
-	//$(newCrit).append(wrapper)
-	$(newCrit).append(value)
-	//$(newCrit).append(valueBool)
+	var ul = $("<ul>",{'class':'nobullets'})
+	var li1 = $("<li>"); li1.append(value)
+	var li2 = $("<li>", {'class':'valTypeIndicator'})
+	ul.append(li1)
+	ul.append(li2)
+	$(newCrit).append(ul)
 	$(newCrit).append(removeIcon)
 	$("#queryDiv").append(newCrit)
 	var numCrits = $("#queryDiv").children().length
@@ -97,10 +104,10 @@ that._renderItemData( ul, item );
 
 
 function queryChange(self){
-	var oneCrit = $(self).parent()
+	var oneCrit = $(self).parents('.oneCrit')
 	var field = $(oneCrit).children('.field')[0]
 	var operation = $(oneCrit).children('.operation')[0]
-	var value = $(oneCrit).children('.value')[0]
+	var value = $(oneCrit).find('.value')[0]
 	
 	oneCrit.attr('data-field',$(field).val())
 	oneCrit.attr('data-operation',$(operation).val())
@@ -112,9 +119,8 @@ function queryChange(self){
 	if(opVal == "$type"){
 		
 		$(value).tooltip({'content':function(){var ret = "<div style='font-weight:bold'>Integer correspondences for $type query</div>"
-			var types = ['Double', 'String', 'Object', 'Array', 'Binary Data', 'Undefined (deprecated', 'Object id', 'Boolean', 'Date', 'Null', 'Regular Expression', 'Javascript', 'Symbol', 'Javascript (with scope', '32-bit integer', 'Timestamp', '64-bit integer']
-			for(var i=0;i<types.length;i++)
-				ret += "<div>"+ ((i<11)?(i+1):(i+2)) +": " + types[i]+"</div>"
+			for(var i=0;i<typeTypes.length;i++)
+				ret += "<div>"+ ((i<11)?(i+1):(i+2)) +": " + typeTypes[i]+"</div>"
 			ret += "<div>255: Min key</div>"
 			ret += "<div>127: Max key</div>"
 			return ret
@@ -307,11 +313,22 @@ function formatValueDiv(div){
 	if(val == "")
 		val = $(div).val() //handle inputs as well, not just divs
 	val = $.trim(val) //removing spaces on the ends
-	$(div).removeClass(Object.keys(formats).join(' '))
+	$(div).removeClass(Object.keys(formats).join(' ')) //remove all previous styling
+	var niceName = ""
 	for(var i in formats){
-		if(formats[i][0].test(val))
+		if(formats[i][0].test(val)){
 			$(div).addClass(i)
+			niceName = formats[i][2] //descriptive name
+			break
+		}
 	}
+	var indicatorDiv = $(div).parents('.oneCrit').find('.valTypeIndicator')
+	var operatorVal = $(div).parents('.oneCrit').find('.operation').val()
+	if(operatorVal == '$type') //custom valueType indicator value for $exists
+		$(indicatorDiv).html('$type query: ' + typeTypes[Number(val)-1])
+	else
+		$(indicatorDiv).html(niceName) //set the descriptive name
+	
 }
 //takes in a field value and retrieves the unique values for that field
 function loadDistinctVals(event){
