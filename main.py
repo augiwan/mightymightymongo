@@ -37,6 +37,11 @@ def colView(dbName, colName):
 		print "collection doesn't exist"
 	return render_template('colView.html',dbName=dbName,colName=colName,count=count, schema=schema)
 
+@app.route('/queryinstructions')
+def queryInstructions():
+	'''an html view to show instructions for doing queries'''
+	return render_template('queryInstructions.html')
+
 @app.route('/ajax/getKeysList', methods=['POST','GET'])
 def getKeysList():
 	'''takes in a dbName and colName and returns a JSON list of all the keys in that table in a the "keys" field.  Returns None if the field has not been created by variety'''

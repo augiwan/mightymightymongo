@@ -326,8 +326,14 @@ function formatValueDiv(div){
 	var operatorVal = $(div).parents('.oneCrit').find('.operation').val()
 	if(operatorVal == '$type') //custom valueType indicator value for $exists
 		$(indicatorDiv).html('$type query: ' + typeTypes[Number(val)-1])
-	else
-		$(indicatorDiv).html(niceName) //set the descriptive name
+	else{
+		if(niceName) //if we matched something
+			$(indicatorDiv).html(niceName) //set the descriptive name
+		else if (val) //the field is not blank but nothing was matched
+			$(indicatorDiv).html("<span style='color:red'>Format does not match a type</span>")
+		else // the field is just blank
+			$(indicatorDiv).html("")
+	}
 	
 }
 //takes in a field value and retrieves the unique values for that field

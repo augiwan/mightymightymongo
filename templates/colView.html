@@ -91,7 +91,7 @@
 <div style="width:100%;clear:both;"></div>
 <div><a id="schemaExpand" onclick="javscript:toggleSchemaExpand()">Expand/Collapse</a></div>
 <button onclick="javascript:loadSchema()">Get Schema</button>
-<h2>Query Div - <a onclick="javascript:$('#valTypeInstructions').dialog();" style='font-size:.5em;'>How to specify value types</a></h2> 
+<h2>Query Div - <a onclick="javascript:window.open('/queryinstructions', '_blank', 'height=400,width=800, status=yes,toolbar=no,menubar=no,location=yes,scrollbars=1');" style='font-size:.5em;'>How to specify value types</a></h2> 
 <div style="margin-bottom:20px;" id="queryDiv" style="clear:both";>
 	<!--appendCriteriaField dynamically puts fields here -->
 </div>
@@ -118,19 +118,6 @@
 	<!--results will be placed here by javascript -->
 </div> <!--resultsDiv-->
 <a style="cursor:pointer;cursor:hand" onclick="javascript:alert('not implemented yet')">Previous</a> <a style="cursor:pointer;cursor:hand" onclick="querySkip=querySkip+pageSize;javascript:query(querySkip, pageSize)">Next</a>
-
-<div id='valTypeInstructions'>
-<h2>How to specify the data type in a query</h2>
-<h4>When querying for the value "42", do you mean the number 42 or the string "42"?  How about searching for a date?  The Mighty Mongo uses a regular-expressed-based system to make this fast and easy.  Read on for more info.</h4>
-<ul>
-	<li>Booleans are either <span class='boolType'>true</span> or <span class='boolType'>false</span></li>
-	<li>Any digits 0-9 is a number.  An optional decimial point or negative signs works too.  Examples: <span class=numType>42</span>, <span class=numType>42.2</span>, <span class=numType>-5</span></li>
-	<li>Anything inside of double quotes (<span class=stringType>"..."</span>) is a string.  For example, <span class=stringType>"Hello world"</span>, <span class=stringType>"42"</span></li>
-	<li>A date/time has two formats.  One with just a date and one with a date & time.  Both start with "dt:".  Just a date has the format dt:YYYY:MM:DD.  For example: <span class=dateType>dt:2014-12-10</span>.  Date & time goes dt:YYYY-MM-DDTHH:MM:SS.  For example: <span class=dateType>dt:2014-12-10T12:12:12</span>  </li>
-	<li>For a nullType (some languages called it 'none'), just type <span class=noneType>null</span></li>
-	<li>For an objectID, type <span class=oidType>oid:oid_code</span> where oid_code must be a 24-character hexadecimal (0-9 and a-f) string of characters. i.e. <span class=oidType>oid:4f13b4296118ad10e7050602</span></li>
-</ul>
-<p>Go ahead and try it out in a query!</p>
 
 </div>
 </body>

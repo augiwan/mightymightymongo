@@ -1,0 +1,32 @@
+<head>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/types.css">
+	
+	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
+	<script src="/static/jscript/colView.js"></script>
+</head>
+
+<body style="margin-left:20px;">
+
+<div id='valTypeInstructions'>
+<h2>How to specify the data type in a query</h2>
+<h4>The Might Mongo uses a regular-expression based syntax for specifying the data type for a query.  This is important, for instance to differentiate between the string "42" and the number, 42.  The formatting is based generally on Javascript syntax.  On-the-fly formatting will automatically color-code the query box to indicate that you've matched a particular data type.  A A sample query box is available at the bottom so you can practice!</h4>
+<ul>
+	<li>For a boolean, just type <span class='boolType'>true</span> or <span class='boolType'>false</span></li>
+	<li>Any string of digits from 0 to 9 is a number.  An optional decimial point or negative sign works too.  Examples: <span class=numType>42</span>, <span class=numType>42.2</span>, <span class=numType>-5</span></li>
+	<li>Anything inside of double quotes (<span class=stringType>"..."</span>) is a string.  For example, <span class=stringType>"Hello world"</span>, <span class=stringType>"42"</span></li>
+	<li>A date/time has two formats.  One with just a date and one with a date & time.  Both start with "dt:".  Just a date has the format dt:YYYY:MM:DD.  For example: <span class=dateType>dt:2014-12-10</span>.  For Date and time, use the format dt:YYYY-MM-DDTHH:MM:SS.  For example: <span class=dateType>dt:2014-12-10T12:12:12</span>  </li>
+	<li>For a nullType (some languages called it 'none'), just type <span class=noneType>null</span></li>
+	<li>For an objectID, type <span class=oidType>oid:oid_code</span> where oid_code must be a 24-character hexadecimal (0-9 and a-f) string of characters. i.e. <span class=oidType>oid:4f13b4296118ad10e7050602</span></li>
+</ul>
+<p>Go ahead and try out any of the above exmaples here!</p>
+
+<div class="oneCrit">
+<div><input id='testQuery' class=value type='text' placeholder="experiment with values here" ></div>
+<div class="valTypeIndicator" style="clear:both">
+</div>
+<script>
+$('#testQuery').keyup(function(self){formatValueDiv(self.target)})
+</script>
+</body>
