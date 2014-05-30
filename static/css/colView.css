@@ -18,6 +18,8 @@ input, select{
 
 .operatorIcon{
 	height:100%;
+	cursor: pointer; 
+	cursor: hand;
 }
 
 .oneAttr{
