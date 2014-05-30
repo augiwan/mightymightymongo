@@ -185,10 +185,12 @@ function query(skip, pageSize){
 		data['geoSearchX'] = $('#geosearchx').val()
 		data['geoSearchY'] = $('#geosearchy').val()
 	}
+	$("#loadingResultsDiv").show()
 	$.ajax({url:'/ajax/query', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:queryReceived})
 }
 
 function queryReceived(data){
+	$("#loadingResultsDiv").hide()
 	$('#queryCount').html('Total Results: ' + data['count'])
 	var results = data['results']
 	var resultsDiv = $("#resultsDiv")
@@ -232,22 +234,26 @@ function nextPage(){
 }
 
 function toggleExpanded(div){
-	var expanded = $(div).children('.resultExpanded')[0]
+	var expanded = $(div).children('.resultExpanded')
 	if(!$(div).data('loaded')){
-		loadDoc(div)
+		loadDoc(div, function(){expanded.hide();$(expanded).slideToggle()})
 	}
-	$(expanded).slideToggle()
+	else
+		$(expanded).slideToggle()
 }
 
-function loadDoc(div){
+function loadDoc(div, callback){ //[optional] callback method runs when the document has been loaded successfully
 	var data = {}
 	data['dbName'] = dbName
 	data['colName'] = colName
 	data['objID'] = $(div).data('_id')
+	var expand = $(div).children('.resultExpanded')
+	expand.html("<img src = /static/images/loading.gif> Loading...")
+	expand.show()
 	$.ajax({url:'/ajax/loadDocument', type:'POST', data:JSON.stringify(data), contentType:'application/json', success:docReceived})
 	
 	function docReceived(data){
-		var expand = $(div).children('.resultExpanded')[0]
+		$(expand).html('')
 		var serialized = serializeDoc(data['doc'])
 		var keys = Object.keys(serialized).sort() //get the keys sorted alphabetically
 		for(var i=0;i<keys.length;i++){
@@ -260,9 +266,12 @@ function loadDoc(div){
 			$(newDiv).append(val)
 			$(expand).append(newDiv)
 		}
+		$(div).data('loaded', true)
+		if(callback) //if callback was set
+			callback()
 	}
 	
-	$(div).data('loaded', true)
+	
 }
 
 
