@@ -1,5 +1,6 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/main.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/dbView.css">
 	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
 	
@@ -31,21 +32,23 @@
 		}
 	</script>
 </head>
-<div style="font-size:30px;margin-top:30px;"><a href='/'>Home</a> -> {{db.name}}</div>
-<br><br>
-<h1>Collections:</h1>
-<ul style="width:45%; float:left;">
-{% for col in db.collection_names() %}
-	<li class="oneDBli" data-table={{col}}><a data-table={{col}} href="/db/{{db.name}}/col/{{col}}">{{col}}</a></li>
-{% endfor %}
+<body>
+	<div class='breadCrumDiv'><a href='/'>Home</a> -> {{db.name}}</div>
+	<h1>Collections:</h1>
+	<ul class='dbUl'>
+	{% for col in db.collection_names() %}
+		<li class="oneDBli" data-table={{col}}><a data-table={{col}} href="/db/{{db.name}}/col/{{col}}">{{col}}</a></li>
+	{% endfor %}
 
-</ul>
+	</ul>
 
-<div id='dbStats' style="width:45%;height:400px;float:left;">
-<h1 class='dbName'>DB Name<h2>
-<div> <span class='count'></span> documents </div>
+	<div id='dbStats' style="width:45%;height:400px;float:left;">
+	<h1 class='dbName'>DB Name<h2>
+	<div> <span class='count'></span> documents </div>
 
-<h3>Index Info</h3>
-<div class='indexInfo'></div>
+	<h3>Index Info</h3>
+	<div class='indexInfo'></div>
 
-</div>
+	</div>
+
+</body>

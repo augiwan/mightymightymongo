@@ -1,5 +1,6 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/main.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/colView.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/types.css">
 	<script src="/static/jscript/jquery-1.7.1.min.js"></script>
@@ -50,7 +51,7 @@
 </head>
 
 <body style="padding:20px;">
-<div id="breadCrumbPath"><h2><a href='/'>Home</a> -> <a href='/db/{{dbName}}'>{{dbName}}</a> -> {{colName}}</h2></div>
+<div class="breadCrumDiv"><a href='/'>Home</a> -> <a href='/db/{{dbName}}'>{{dbName}}</a> -> {{colName}}</div>
 <div style="font-size:30px;height:35px;margin-top:10px;margin-left:15px;">{{count}} total entries</div>
 
 <div id="schema" style="float:left;width:50%;height:200px;overflow:auto;">

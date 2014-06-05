@@ -1,9 +1,21 @@
-Welcome to the mighty mighty mongo!!!
-<br>
+<head>
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/main.css">
 
-Databases:
-<ul>
-	{% for db in mongo.database_names() %}
-	<li><a href="/db/{{db}}">{{db}}</a></li>
-	{% endfor %}
-</ul>
+</head>
+
+
+<body>
+	Welcome to the mighty mighty mongo!!!
+	<div class='breadCrumDiv'><a href='/'>Home</a></div>
+	<br><br>
+	<br>
+
+	<h1>Databases:</h1>
+	<ul class='dbUl'>
+		{% for db in mongo.database_names() %}
+		<li class="oneDBli"><a href="/db/{{db}}">{{db}}</a></li>
+		{% endfor %}
+	</ul>
+
+</body>
