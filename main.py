@@ -1,10 +1,10 @@
 from flask import Flask, render_template, jsonify, request, Response
-from pymongo import Connection
+from pymongo import MongoClient
 from ast import literal_eval
 from bson.objectid import ObjectId
 app = Flask(__name__)
 import unicodedata
-mongo = Connection()
+mongo = MongoClient()
 from bson.json_util import dumps, loads
 from json import loads
 import os
